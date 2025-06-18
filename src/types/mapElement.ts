@@ -1,6 +1,5 @@
-
 // types/mapElement.ts
-import { ElementType } from './element';
+import { ElementType } from "./element";
 
 export interface MapElement {
   id: string;

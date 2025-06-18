@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text, Group, Transformer } from 'react-konva';
-import Konva from 'konva';
-import { MapElement } from '@/src/types/mapElement';
+import React, { useRef, useEffect, useState } from "react";
+import {
+  Stage,
+  Layer,
+  Rect,
+  Text,
+  Group,
+  Transformer,
+  Circle,
+} from "react-konva";
+import Konva from "konva";
+import { MapElement } from "@/src/types/mapElement";
 
 type MapEditorCanvasProps = {
   width: number;
@@ -25,7 +33,10 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   const stageRef = useRef<Konva.Stage>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
+  const [selectionStart, setSelectionStart] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [selectionVisible, setSelectionVisible] = useState(false);
 
   const elementRefs = useRef<Record<string, Konva.Node>>({});
@@ -35,7 +46,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     if (!transformer) return;
 
     const selectedNodes = selectedIds
-      .map(id => elementRefs.current[id])
+      .map((id) => elementRefs.current[id])
       .filter(Boolean) as Konva.Node[];
 
     transformer.nodes(selectedNodes);
@@ -100,7 +111,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
         y1: box.y,
         x2: box.x + box.width,
         y2: box.y + box.height,
-      })
+      }),
     );
 
     onSelectElements(selected);
@@ -114,8 +125,10 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
 
     if (e.evt.shiftKey) {
       const newSelection = isSelected
-        ? selectedIds.filter((id) => id !== el.id).map(id => elements.find(e => e.id === id)!)
-        : [...selectedIds.map(id => elements.find(e => e.id === id)!), el];
+        ? selectedIds
+            .filter((id) => id !== el.id)
+            .map((id) => elements.find((e) => e.id === id)!)
+        : [...selectedIds.map((id) => elements.find((e) => e.id === id)!), el];
 
       onSelectElements(newSelection.filter(Boolean));
     } else {
@@ -123,7 +136,10 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     }
   };
 
-  const handleTransformEnd = (e: Konva.KonvaEventObject<Event>, el: MapElement) => {
+  const handleTransformEnd = (
+    e: Konva.KonvaEventObject<Event>,
+    el: MapElement,
+  ) => {
     const node = e.target;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
@@ -140,13 +156,15 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     node.scaleX(1);
     node.scaleY(1);
 
-    setElements((prev) => prev.map((item) => (item.id === el.id ? updated : item)));
+    setElements((prev) =>
+      prev.map((item) => (item.id === el.id ? updated : item)),
+    );
   };
 
   const renderElement = (el: MapElement) => {
     const isSelected = selectedIds.includes(el.id);
 
-    if (el.type === 'group' && el.children) {
+    if (el.type === "group" && el.children) {
       return (
         <Group
           key={el.id}
@@ -164,7 +182,9 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               x: node.x(),
               y: node.y(),
             };
-            setElements((prev) => prev.map((item) => (item.id === el.id ? updated : item)));
+            setElements((prev) =>
+              prev.map((item) => (item.id === el.id ? updated : item)),
+            );
           }}
         >
           {el.children.map((child) => renderElement(child))}
@@ -177,6 +197,55 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               stroke="blue"
               strokeWidth={2}
               dash={[4, 4]}
+            />
+          )}
+        </Group>
+      );
+    } else if (el.type === "seat") {
+      return (
+        <Group
+          key={el.id}
+          ref={(ref) => {
+            if (ref) elementRefs.current[el.id] = ref;
+          }}
+          x={el.x}
+          y={el.y}
+          draggable
+          onClick={(e) => handleElementClick(e, el)}
+          onDragEnd={(e) => {
+            const node = e.target;
+            const updated = {
+              ...el,
+              x: node.x(),
+              y: node.y(),
+            };
+            setElements((prev) =>
+              prev.map((item) => (item.id === el.id ? updated : item)),
+            );
+          }}
+          onTransformEnd={(e) => handleTransformEnd(e, el)}
+        >
+          <Circle
+            x={el.width / 2}
+            y={el.height / 2}
+            radius={el.width / 2}
+            fill={el.fill}
+            stroke={isSelected ? "blue" : undefined}
+            strokeWidth={isSelected ? 2 : 0}
+          />
+          {el.text && (
+            <Text
+              text={el.text}
+              fontSize={el.fontSize || 12}
+              fill="black"
+              align="center"
+              verticalAlign="middle"
+              width={el.width}
+              height={el.height}
+              offsetX={el.width / 2}
+              offsetY={el.height / 2}
+              x={el.width / 2}
+              y={el.height / 2}
             />
           )}
         </Group>
@@ -200,7 +269,9 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
             x: node.x(),
             y: node.y(),
           };
-          setElements((prev) => prev.map((item) => (item.id === el.id ? updated : item)));
+          setElements((prev) =>
+            prev.map((item) => (item.id === el.id ? updated : item)),
+          );
         }}
         onTransformEnd={(e) => handleTransformEnd(e, el)}
       >
@@ -208,7 +279,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
           width={el.width}
           height={el.height}
           fill={el.fill}
-          stroke={isSelected ? 'blue' : undefined}
+          stroke={isSelected ? "blue" : undefined}
           strokeWidth={isSelected ? 2 : 0}
         />
         {el.text && (
@@ -226,11 +297,8 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     );
   };
 
-
   return (
     <>
-    
-
       <Stage
         width={width}
         height={height}

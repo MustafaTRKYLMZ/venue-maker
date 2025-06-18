@@ -1,6 +1,6 @@
 // components/PropertiesPanel.tsx
-import React, { useState, useEffect } from 'react';
-import { MapElement } from '@/src/types/mapElement';
+import React, { useState, useEffect } from "react";
+import { MapElement } from "@/src/types/mapElement";
 
 interface PropertiesPanelProps {
   selectedElement: MapElement | null;
@@ -13,7 +13,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onUpdateElement,
   onDeleteElement,
 }) => {
-  const [currentProperties, setCurrentProperties] = useState<Partial<MapElement>>({});
+  const [currentProperties, setCurrentProperties] = useState<
+    Partial<MapElement>
+  >({});
 
   // Update internal state when selectedElement changes
   useEffect(() => {
@@ -29,9 +31,15 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     const { name, value } = e.target;
     setCurrentProperties((prev) => ({
       ...prev,
-      [name]: name === 'x' || name === 'y' || name === 'width' || name === 'height' || name === 'fontSize' || name === 'strokeWidth'
-        ? parseFloat(value) || 0 // Convert to number, default to 0 if invalid
-        : value,
+      [name]:
+        name === "x" ||
+        name === "y" ||
+        name === "width" ||
+        name === "height" ||
+        name === "fontSize" ||
+        name === "strokeWidth"
+          ? parseFloat(value) || 0 // Convert to number, default to 0 if invalid
+          : value,
     }));
   };
 
@@ -72,7 +80,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Type:</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Type:
+          </label>
           <input
             type="text"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-100"
@@ -82,9 +92,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         </div>
 
         {/* Common properties for all types */}
-        {typeof currentProperties.x === 'number' && (
+        {typeof currentProperties.x === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">X:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              X:
+            </label>
             <input
               type="number"
               name="x"
@@ -94,9 +106,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </div>
         )}
-        {typeof currentProperties.y === 'number' && (
+        {typeof currentProperties.y === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Y:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Y:
+            </label>
             <input
               type="number"
               name="y"
@@ -106,9 +120,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </div>
         )}
-        {typeof currentProperties.width === 'number' && (
+        {typeof currentProperties.width === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Width:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Width:
+            </label>
             <input
               type="number"
               name="width"
@@ -118,9 +134,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </div>
         )}
-        {typeof currentProperties.height === 'number' && (
+        {typeof currentProperties.height === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Height:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Height:
+            </label>
             <input
               type="number"
               name="height"
@@ -132,7 +150,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         )}
         {currentProperties.text !== undefined && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Text:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Text:
+            </label>
             <input
               type="text"
               name="text"
@@ -142,9 +162,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </div>
         )}
-        {typeof currentProperties.fontSize === 'number' && (
+        {typeof currentProperties.fontSize === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Font Size:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Font Size:
+            </label>
             <input
               type="number"
               name="fontSize"
@@ -156,7 +178,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         )}
         {currentProperties.fill !== undefined && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Fill Color:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Fill Color:
+            </label>
             <input
               type="color"
               name="fill"
@@ -168,7 +192,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         )}
         {currentProperties.stroke !== undefined && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Stroke Color:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Stroke Color:
+            </label>
             <input
               type="color"
               name="stroke"
@@ -178,9 +204,11 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             />
           </div>
         )}
-        {typeof currentProperties.strokeWidth === 'number' && (
+        {typeof currentProperties.strokeWidth === "number" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">Stroke Width:</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Stroke Width:
+            </label>
             <input
               type="number"
               name="strokeWidth"
