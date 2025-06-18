@@ -1,0 +1,457 @@
+// app/editor/[mapId]/page.tsx
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { v4 as uuidv4 } from 'uuid';
+
+// Firestore imports
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/src/lib/firebase';
+
+// Import types
+import { MapElement } from '@/src/types/mapElement';
+import { ElementType } from '@/src/types/element';
+
+// Import components
+import { PropertiesPanel } from '@/src/components/PropertiesPanel';
+
+// Dynamically import MapEditorCanvas
+const DynamicMapEditorCanvas = dynamic(() => import('@/src/components/MapEditorCanvas').then(mod => mod.MapEditorCanvas), {
+  ssr: false,
+  loading: () => <p className="text-gray-500">Loading canvas...</p>,
+});
+
+export default function MapEditorPage() {
+  const params = useParams();
+  const mapId = params.mapId;
+  const [mapName, setMapName] = useState('');
+
+  // Undo/Redo states
+  const [elements, setElements] = useState<MapElement[]>([]);
+  const [history, setHistory] = useState<MapElement[][]>([[]]);
+  const [historyPointer, setHistoryPointer] = useState(0);
+
+  // Flag to prevent infinite loop when updating elements from history
+  const isUpdatingFromHistory = useRef(false);
+
+  // --- MULTI-SELECTION STATE ---
+  const [selectedElements, setSelectedElements] = useState<MapElement[]>([]); // Changed from selectedElement
+
+  // COPY/PASTE STATE
+  const [copiedElement, setCopiedElement] = useState<MapElement | null>(null);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isMapLoading, setIsMapLoading] = useState(true);
+
+  // Effect to manage history when elements state changes
+  useEffect(() => {
+    if (isUpdatingFromHistory.current) {
+      isUpdatingFromHistory.current = false;
+      return;
+    }
+
+    setHistory((prevHistory) => {
+      const newHistory = prevHistory.slice(0, historyPointer + 1);
+      newHistory.push(elements);
+      return newHistory;
+    });
+    setHistoryPointer((prevPointer) => prevPointer + 1);
+  }, [elements]);
+
+  // Effect to load map data from Firestore
+  useEffect(() => {
+    const fetchMap = async () => {
+      if (mapId === 'new') {
+        setMapName('New Map Draft');
+        setElements([]);
+        setHistory([[]]);
+        setHistoryPointer(0);
+        setIsMapLoading(false);
+        return;
+      }
+
+      setIsMapLoading(true);
+      setMapName(`Map Editor: ${mapId}`);
+      try {
+        const mapDocRef = doc(db, 'maps', mapId as string);
+        const mapDocSnap = await getDoc(mapDocRef);
+
+        let loadedElements: MapElement[] = [];
+        if (mapDocSnap.exists()) {
+          const mapData = mapDocSnap.data();
+          if (mapData && Array.isArray(mapData.elements)) {
+            loadedElements = mapData.elements;
+            console.log("Map loaded successfully:", loadedElements);
+          } else {
+            console.warn("Map data found but 'elements' field is missing or not an array.");
+          }
+        } else {
+          console.log("No such map document! Starting with an empty map.");
+        }
+        setElements(loadedElements);
+        setHistory([loadedElements]);
+        setHistoryPointer(0);
+      } catch (error) {
+        console.error("Error fetching map:", error);
+        setElements([]);
+        setHistory([[]]);
+        setHistoryPointer(0);
+      } finally {
+        setIsMapLoading(false);
+        setSelectedElements([]); // Clear selection on load
+      }
+    };
+
+    fetchMap();
+  }, [mapId]);
+
+  const canvasWidth = 1000;
+  const canvasHeight = 700;
+
+  const handleAddButtonClick = useCallback((type: ElementType) => {
+    let newElement: MapElement | null = null;
+    const id = uuidv4();
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    switch (type) {
+      case 'seat':
+        newElement = { id: `seat-${id.substring(0, 4)}`, type: 'seat', x: centerX - 15, y: centerY - 15, width: 30, height: 30, fill: '#4CAF50', text: 'New Seat', fontSize: 14, draggable: true };
+        break;
+      case 'stage':
+        newElement = { id: `stage-${id.substring(0, 4)}`, type: 'stage', x: centerX - 100, y: centerY - 40, width: 200, height: 80, fill: '#607D8B', text: 'New Stage', fontSize: 20, draggable: true };
+        break;
+      case 'text':
+        newElement = { id: `text-${id.substring(0, 4)}`, type: 'text', x: centerX - 50, y: centerY - 15, width: 100, height: 30, text: 'New Text', fontSize: 18, fill: 'black', draggable: true };
+        break;
+      case 'wall':
+        newElement = { id: `wall-${id.substring(0, 4)}`, type: 'wall', x: centerX - 100, y: centerY - 5, width: 200, height: 10, fill: '#795548', draggable: true, stroke: '#5D4037', strokeWidth: 2 };
+        break;
+      default:
+        break;
+    }
+
+    if (newElement) {
+      setElements((prevElements) => [...prevElements, newElement!]);
+      setSelectedElements([newElement]); // Select the new element
+    }
+  }, [canvasWidth, canvasHeight]);
+
+  // Handle selection from MapEditorCanvas
+  const handleSelectElements = useCallback((els: MapElement[]) => {
+    setSelectedElements(els);
+  }, []);
+
+  // Update a single element (used by PropertiesPanel and keyboard shortcuts)
+  const handleUpdateElement = useCallback((updatedElement: MapElement) => {
+    setElements((prevElements) =>
+      prevElements.map((el) =>
+        el.id === updatedElement.id ? updatedElement : el
+      )
+    );
+    setSelectedElements(prevSelected =>
+      prevSelected.map(el =>
+        el.id === updatedElement.id ? updatedElement : el
+      )
+    );
+  }, []);
+
+  // Delete a single element (used by PropertiesPanel and keyboard shortcuts)
+  const handleDeleteElement = useCallback((elementId: string) => {
+    setElements((prevElements) => prevElements.filter((el) => el.id !== elementId));
+    setSelectedElements(prevSelected => prevSelected.filter(el => el.id !== elementId));
+  }, []);
+
+  const handleSaveMap = useCallback(async () => {
+    setIsSaving(true);
+    let currentMapId = mapId as string;
+
+    if (mapId === 'new') {
+      currentMapId = uuidv4();
+    }
+
+    try {
+      const mapDocRef = doc(db, 'maps', currentMapId);
+      await setDoc(mapDocRef, {
+        elements: elements,
+        lastModified: new Date().toISOString(),
+      });
+      console.log("Map saved successfully with ID:", currentMapId);
+    } catch (error) {
+      console.error("Error saving map:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [elements, mapId]);
+
+
+  const handleUndo = useCallback(() => {
+    if (historyPointer > 0) {
+      isUpdatingFromHistory.current = true;
+      setHistoryPointer((prev) => prev - 1);
+      setElements(history[historyPointer - 1]);
+      setSelectedElements([]); // Clear selection on undo
+    }
+  }, [history, historyPointer]);
+
+  const handleRedo = useCallback(() => {
+    if (historyPointer < history.length - 1) {
+      isUpdatingFromHistory.current = true;
+      setHistoryPointer((prev) => prev + 1);
+      setElements(history[historyPointer + 1]);
+      setSelectedElements([]); // Clear selection on redo
+    }
+  }, [history, historyPointer]);
+
+  // --- GROUPING FUNCTIONS ---
+  const handleGroupElements = useCallback(() => {
+    if (selectedElements.length < 2) {
+      alert("Select at least two elements to group.");
+      return;
+    }
+
+    // Determine the bounding box for the new group
+    let minX = Infinity, minY = Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+
+    selectedElements.forEach(el => {
+        minX = Math.min(minX, el.x);
+        minY = Math.min(minY, el.y);
+        maxX = Math.max(maxX, el.x + el.width);
+        maxY = Math.max(maxY, el.y + el.height);
+    });
+
+    const newGroupId = `group-${uuidv4().substring(0, 4)}`;
+    const newGroup: MapElement = {
+        id: newGroupId,
+        type: 'group',
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+        draggable: true,
+        children: selectedElements.map(el => ({
+            ...el,
+            // Children coordinates are relative to the group's top-left corner
+            x: el.x - minX,
+            y: el.y - minY,
+        })),
+    };
+
+    // Remove grouped elements from the main elements array
+    // Add the new group element
+    setElements(prevElements => {
+        const remainingElements = prevElements.filter(el => !selectedElements.some(selEl => selEl.id === el.id));
+        return [...remainingElements, newGroup];
+    });
+
+    setSelectedElements([newGroup]); // Select the new group
+    console.log("Elements grouped:", newGroup.id);
+  }, [selectedElements, setElements]);
+
+
+  const handleUngroupElements = useCallback(() => {
+    if (selectedElements.length !== 1 || selectedElements[0].type !== 'group') {
+      alert("Select a single group to ungroup.");
+      return;
+    }
+
+    const groupToUngroup = selectedElements[0];
+    const ungroupedChildren: MapElement[] = groupToUngroup.children?.map(child => ({
+        ...child,
+        // Convert child coordinates back to absolute based on group's position
+        x: child.x + groupToUngroup.x,
+        y: child.y + groupToUngroup.y,
+    })) || [];
+
+    // Remove the group from elements array and add its children back
+    setElements(prevElements => {
+        const remainingElements = prevElements.filter(el => el.id !== groupToUngroup.id);
+        return [...remainingElements, ...ungroupedChildren];
+    });
+
+    setSelectedElements(ungroupedChildren); // Select the newly ungrouped elements
+    console.log("Group ungrouped:", groupToUngroup.id);
+  }, [selectedElements, setElements]);
+
+
+  // KEYBOARD SHORTCUTS
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    const isInputField = (e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA';
+    if (isInputField) {
+        return;
+    }
+
+    // Arrow Key Movement - Apply to all selected elements
+    if (selectedElements.length > 0 && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      const moveAmount = 1;
+      const newElements = elements.map(el => {
+        if (selectedElements.some(selEl => selEl.id === el.id)) {
+          let newX = el.x;
+          let newY = el.y;
+          switch (e.key) {
+            case 'ArrowUp': newY -= moveAmount; break;
+            case 'ArrowDown': newY += moveAmount; break;
+            case 'ArrowLeft': newX -= moveAmount; break;
+            case 'ArrowRight': newX += moveAmount; break;
+          }
+          return { ...el, x: newX, y: newY };
+        }
+        return el;
+      });
+      setElements(newElements);
+      // Update selectedElements array with new positions
+      setSelectedElements(newElements.filter(el => selectedElements.some(selEl => selEl.id === el.id)));
+      return;
+    }
+
+    // Delete/Backspace
+    if (['Delete', 'Backspace'].includes(e.key)) {
+      e.preventDefault();
+      if (selectedElements.length > 0) {
+        const selectedIdsToDelete = selectedElements.map(el => el.id);
+        setElements(prevElements => prevElements.filter(el => !selectedIdsToDelete.includes(el.id)));
+        setSelectedElements([]);
+        console.log("Elements deleted:", selectedIdsToDelete);
+      }
+      return;
+    }
+
+    // Copy/Paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      if (selectedElements.length === 1) { // Only copy single element for now
+        setCopiedElement(selectedElements[0]);
+        console.log("Element copied:", selectedElements[0].id);
+      } else if (selectedElements.length > 1) {
+        // For multiple selected elements, copy the first one or implement multi-element copy
+        alert("Multi-element copy is not yet implemented. Copying only the first selected element.");
+        setCopiedElement(selectedElements[0]);
+      }
+      e.preventDefault();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      if (copiedElement) {
+        const newId = `${copiedElement.type}-${uuidv4().substring(0, 4)}`;
+        const pasteOffset = 10;
+        const pastedElement: MapElement = {
+          ...copiedElement,
+          id: newId,
+          x: copiedElement.x + pasteOffset,
+          y: copiedElement.y + pasteOffset,
+        };
+        setElements((prevElements) => [...prevElements, pastedElement]);
+        setSelectedElements([pastedElement]);
+        console.log("Element pasted:", pastedElement.id);
+      }
+      e.preventDefault();
+    }
+
+  }, [selectedElements, copiedElement, elements, setElements, handleDeleteElement, setSelectedElements]);
+
+  // Attach and detach keyboard event listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+
+  if (isMapLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-xl text-gray-700">Loading map data...</p>
+      </div>
+    );
+  }
+
+  // Determine which element's properties to show in the panel
+  // If multiple elements are selected, or a group is selected, show properties of the first one.
+  const elementForPropertiesPanel = selectedElements.length === 1 ? selectedElements[0] : null;
+
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <header className="w-full bg-white shadow p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          {mapName}
+        </h1>
+        <div className="flex space-x-4">
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition disabled:opacity-50"
+            onClick={handleUndo}
+            disabled={historyPointer === 0}
+          >
+            Undo
+          </button>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition disabled:opacity-50"
+            onClick={handleRedo}
+            disabled={historyPointer === history.length - 1}
+          >
+            Redo
+          </button>
+          {/* Group/Ungroup Buttons */}
+          <button
+            className="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition disabled:opacity-50"
+            onClick={handleGroupElements}
+            disabled={selectedElements.length < 2 || selectedElements.some(el => el.type === 'group')} // Disable if less than 2 selected or a group is already selected
+          >
+            Group
+          </button>
+          <button
+            className="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition disabled:opacity-50"
+            onClick={handleUngroupElements}
+            disabled={selectedElements.length !== 1 || selectedElements[0]?.type !== 'group'} // Disable if not exactly one group selected
+          >
+            Ungroup
+          </button>
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 transition disabled:opacity-50"
+            onClick={handleSaveMap}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save'}
+          </button>
+          <button className="px-4 py-2 bg-purple-600 text-white rounded-md shadow hover:bg-purple-700 transition">Publish</button>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel: Tools */}
+        <aside className="w-64 bg-gray-100 p-4 border-r border-gray-200 flex-shrink-0">
+          <h2 className="text-xl font-semibold mb-4">Tools</h2>
+          <div className="space-y-2">
+            <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('seat')}>Add Seat</button>
+            <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('stage')}>Add Stage</button>
+            <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('text')}>Add Text</button>
+            <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('wall')}>Add Wall</button>
+          </div>
+        </aside>
+
+        {/* Main Work Area: Canvas */}
+        <main className="flex-1 p-4 flex items-center justify-center bg-gray-200 overflow-auto">
+          <DynamicMapEditorCanvas
+            width={canvasWidth}
+            height={canvasHeight}
+            elements={elements}
+            setElements={setElements}
+            selectedIds={selectedElements.map(el => el.id)} // Pass IDs
+            onSelectElements={handleSelectElements} // Pass new handler
+          />
+        </main>
+
+        {/* Right Panel: Properties */}
+        <aside className="w-64 bg-gray-100 p-4 border-l border-gray-200 flex-shrink-0">
+          <PropertiesPanel
+            selectedElement={elementForPropertiesPanel} // Pass the single selected element or null
+            onUpdateElement={handleUpdateElement}
+            onDeleteElement={handleDeleteElement}
+          />
+        </aside>
+      </div>
+    </div>
+  );
+}
