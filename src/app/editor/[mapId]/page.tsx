@@ -32,6 +32,8 @@ export default function MapEditorPage() {
   const [elements, setElements] = useState<MapElement[]>([]);
   const [history, setHistory] = useState<MapElement[][]>([[]]);
   const [historyPointer, setHistoryPointer] = useState(0);
+  const [rows, setRows] = useState(3);
+  const [cols, setCols] = useState(4);
 
   // Flag to prevent infinite loop when updating elements from history
   const isUpdatingFromHistory = useRef(false);
@@ -370,8 +372,37 @@ export default function MapEditorPage() {
   // Determine which element's properties to show in the panel
   // If multiple elements are selected, or a group is selected, show properties of the first one.
   const elementForPropertiesPanel = selectedElements.length === 1 ? selectedElements[0] : null;
+ 
+  const addSeatsGrid = (
+    startX: number,
+    startY: number,
+    rows: number,
+    cols: number,
+    seatWidth: number,
+    seatHeight: number,
+    gap: number = 10
+  ) => {
+    const newSeats: MapElement[] = [];
 
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const id = `seat-${Date.now()}-${row}-${col}`;
+        newSeats.push({
+                  id,
+                  type: 'seat',
+                  x: startX + col * (seatWidth + gap),
+                  y: startY + row * (seatHeight + gap),
+                  width: seatWidth,
+                  height: seatHeight,
+                  fill: 'lightgray',
+                  text: `S${row + 1}-${col + 1}`,
+                  draggable: true,
+                });
+      }
+    }
 
+    setElements(prev => [...prev, ...newSeats]);
+  };
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="w-full bg-white shadow p-4 flex justify-between items-center">
@@ -429,6 +460,38 @@ export default function MapEditorPage() {
             <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('text')}>Add Text</button>
             <button className="w-full text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800" onClick={() => handleAddButtonClick('wall')}>Add Wall</button>
           </div>
+          <div className="mb-4 flex flex-col gap-2">
+  <label className="flex items-center justify-between gap-2 text-sm text-gray-700">
+    Row:
+    <input
+      type="number"
+      min={1}
+      value={rows}
+      onChange={(e) => setRows(Number(e.target.value))}
+      className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </label>
+
+  <label className="flex items-center justify-between gap-2 text-sm text-gray-700">
+    Column:
+    <input
+      type="number"
+      min={1}
+      value={cols}
+      onChange={(e) => setCols(Number(e.target.value))}
+      className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+  </label>
+
+  <button
+    onClick={() => addSeatsGrid(50, 50, rows, cols, 40, 40)}
+    className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition duration-150"
+  >
+    Add Multiple Seats
+  </button>
+</div>
+
+
         </aside>
 
         {/* Main Work Area: Canvas */}
@@ -451,6 +514,7 @@ export default function MapEditorPage() {
             onDeleteElement={handleDeleteElement}
           />
         </aside>
+       
       </div>
     </div>
   );

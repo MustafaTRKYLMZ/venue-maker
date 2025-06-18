@@ -27,6 +27,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   const transformerRef = useRef<Konva.Transformer>(null);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionVisible, setSelectionVisible] = useState(false);
+
   const elementRefs = useRef<Record<string, Konva.Node>>({});
 
   useEffect(() => {
@@ -225,27 +226,32 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     );
   };
 
+
   return (
-    <Stage
-      width={width}
-      height={height}
-      ref={stageRef}
-      className="bg-white rounded-lg shadow-md"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
-      <Layer>
-        {elements.map((el) => renderElement(el))}
-        <Transformer ref={transformerRef} rotateEnabled resizeEnabled />
-        <Rect
-          ref={selectionRectRef}
-          fill="rgba(0, 161, 255, 0.2)"
-          stroke="blue"
-          strokeWidth={1}
-          visible={selectionVisible}
-        />
-      </Layer>
-    </Stage>
+    <>
+    
+
+      <Stage
+        width={width}
+        height={height}
+        ref={stageRef}
+        className="bg-white rounded-lg shadow-md"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        <Layer>
+          {elements.map((el) => renderElement(el))}
+          <Transformer ref={transformerRef} rotateEnabled resizeEnabled />
+          <Rect
+            ref={selectionRectRef}
+            fill="rgba(0, 161, 255, 0.2)"
+            stroke="blue"
+            strokeWidth={1}
+            visible={selectionVisible}
+          />
+        </Layer>
+      </Stage>
+    </>
   );
 };
