@@ -17,17 +17,18 @@ import { ElementType } from "@/src/types/element";
 // Import components
 import { PropertiesPanel } from "@/src/components/PropertiesPanel";
 import { LeftPanelTools } from "@/src/components/LeftPanelTools";
+import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 
 // Dynamically import MapEditorCanvas
 const DynamicMapEditorCanvas = dynamic(
   () =>
     import("@/src/components/MapEditorCanvas").then(
-      (mod) => mod.MapEditorCanvas,
+      (mod) => mod.MapEditorCanvas
     ),
   {
     ssr: false,
     loading: () => <p className="text-gray-500">Loading canvas...</p>,
-  },
+  }
 );
 
 export default function MapEditorPage() {
@@ -41,13 +42,16 @@ export default function MapEditorPage() {
   const [historyPointer, setHistoryPointer] = useState(0);
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(4);
-
+  const [isAddingSeat, setIsAddingSeat] = useState(false);
   // Flag to prevent infinite loop when updating elements from history
   const isUpdatingFromHistory = useRef(false);
 
   // --- MULTI-SELECTION STATE ---
   const [selectedElements, setSelectedElements] = useState<MapElement[]>([]); // Changed from selectedElement
-
+  const [lastClickedPosition, setLastClickedPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   // COPY/PASTE STATE
   const [copiedElement, setCopiedElement] = useState<MapElement | null>(null);
 
@@ -95,7 +99,7 @@ export default function MapEditorPage() {
             console.log("Map loaded successfully:", loadedElements);
           } else {
             console.warn(
-              "Map data found but 'elements' field is missing or not an array.",
+              "Map data found but 'elements' field is missing or not an array."
             );
           }
         } else {
@@ -111,7 +115,7 @@ export default function MapEditorPage() {
         setHistoryPointer(0);
       } finally {
         setIsMapLoading(false);
-        setSelectedElements([]); // Clear selection on load
+        setSelectedElements([]);
       }
     };
 
@@ -125,8 +129,8 @@ export default function MapEditorPage() {
     (type: ElementType) => {
       let newElement: MapElement | null = null;
       const id = uuidv4();
-      const centerX = canvasWidth / 2;
-      const centerY = canvasHeight / 2;
+      const centerX = lastClickedPosition?.x ?? canvasWidth / 2;
+      const centerY = lastClickedPosition?.y ?? canvasHeight / 2;
 
       switch (type) {
         case "seat":
@@ -194,7 +198,7 @@ export default function MapEditorPage() {
         setSelectedElements([newElement]); // Select the new element
       }
     },
-    [canvasWidth, canvasHeight],
+    [canvasWidth, canvasHeight]
   );
 
   // Handle selection from MapEditorCanvas
@@ -206,23 +210,23 @@ export default function MapEditorPage() {
   const handleUpdateElement = useCallback((updatedElement: MapElement) => {
     setElements((prevElements) =>
       prevElements.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el,
-      ),
+        el.id === updatedElement.id ? updatedElement : el
+      )
     );
     setSelectedElements((prevSelected) =>
       prevSelected.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el,
-      ),
+        el.id === updatedElement.id ? updatedElement : el
+      )
     );
   }, []);
 
   // Delete a single element (used by PropertiesPanel and keyboard shortcuts)
   const handleDeleteElement = useCallback((elementId: string) => {
     setElements((prevElements) =>
-      prevElements.filter((el) => el.id !== elementId),
+      prevElements.filter((el) => el.id !== elementId)
     );
     setSelectedElements((prevSelected) =>
-      prevSelected.filter((el) => el.id !== elementId),
+      prevSelected.filter((el) => el.id !== elementId)
     );
   }, []);
 
@@ -307,7 +311,7 @@ export default function MapEditorPage() {
     // Add the new group element
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => !selectedElements.some((selEl) => selEl.id === el.id),
+        (el) => !selectedElements.some((selEl) => selEl.id === el.id)
       );
       return [...remainingElements, newGroup];
     });
@@ -334,7 +338,7 @@ export default function MapEditorPage() {
     // Remove the group from elements array and add its children back
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => el.id !== groupToUngroup.id,
+        (el) => el.id !== groupToUngroup.id
       );
       return [...remainingElements, ...ungroupedChildren];
     });
@@ -386,8 +390,8 @@ export default function MapEditorPage() {
         // Update selectedElements array with new positions
         setSelectedElements(
           newElements.filter((el) =>
-            selectedElements.some((selEl) => selEl.id === el.id),
-          ),
+            selectedElements.some((selEl) => selEl.id === el.id)
+          )
         );
         return;
       }
@@ -398,7 +402,7 @@ export default function MapEditorPage() {
         if (selectedElements.length > 0) {
           const selectedIdsToDelete = selectedElements.map((el) => el.id);
           setElements((prevElements) =>
-            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id)),
+            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id))
           );
           setSelectedElements([]);
           console.log("Elements deleted:", selectedIdsToDelete);
@@ -415,7 +419,7 @@ export default function MapEditorPage() {
         } else if (selectedElements.length > 1) {
           // For multiple selected elements, copy the first one or implement multi-element copy
           alert(
-            "Multi-element copy is not yet implemented. Copying only the first selected element.",
+            "Multi-element copy is not yet implemented. Copying only the first selected element."
           );
           setCopiedElement(selectedElements[0]);
         }
@@ -444,7 +448,7 @@ export default function MapEditorPage() {
       setElements,
       handleDeleteElement,
       setSelectedElements,
-    ],
+    ]
   );
 
   // Attach and detach keyboard event listener
@@ -475,7 +479,7 @@ export default function MapEditorPage() {
     cols: number,
     seatWidth: number,
     seatHeight: number,
-    gap: number = 10,
+    gap: number = 10
   ) => {
     const newSeats: MapElement[] = [];
 
@@ -500,56 +504,18 @@ export default function MapEditorPage() {
   };
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <header className="w-full bg-white shadow p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">{mapName}</h1>
-        <div className="flex space-x-4">
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition disabled:opacity-50"
-            onClick={handleUndo}
-            disabled={historyPointer === 0}
-          >
-            Undo
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition disabled:opacity-50"
-            onClick={handleRedo}
-            disabled={historyPointer === history.length - 1}
-          >
-            Redo
-          </button>
-          {/* Group/Ungroup Buttons */}
-          <button
-            className="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition disabled:opacity-50"
-            onClick={handleGroupElements}
-            disabled={
-              selectedElements.length < 2 ||
-              selectedElements.some((el) => el.type === "group")
-            } // Disable if less than 2 selected or a group is already selected
-          >
-            Group
-          </button>
-          <button
-            className="px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600 transition disabled:opacity-50"
-            onClick={handleUngroupElements}
-            disabled={
-              selectedElements.length !== 1 ||
-              selectedElements[0]?.type !== "group"
-            } // Disable if not exactly one group selected
-          >
-            Ungroup
-          </button>
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 transition disabled:opacity-50"
-            onClick={handleSaveMap}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-md shadow hover:bg-purple-700 transition">
-            Publish
-          </button>
-        </div>
-      </header>
+      <MapEditorHeader
+        mapName={mapName}
+        handleUndo={handleUndo}
+        historyPointer={historyPointer}
+        handleRedo={handleRedo}
+        handleGroupElements={handleGroupElements}
+        selectedElements={selectedElements}
+        handleUngroupElements={handleUngroupElements}
+        handleSaveMap={handleSaveMap}
+        isSaving={isSaving}
+        historyLength={history.length}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel: Tools */}
@@ -571,6 +537,7 @@ export default function MapEditorPage() {
             setElements={setElements}
             selectedIds={selectedElements.map((el) => el.id)} // Pass IDs
             onSelectElements={handleSelectElements} // Pass new handler
+            onCanvasClick={(pos) => setLastClickedPosition(pos)}
           />
         </main>
 

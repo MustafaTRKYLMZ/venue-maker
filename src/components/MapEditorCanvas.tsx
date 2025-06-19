@@ -12,8 +12,10 @@ import {
 } from "react-konva";
 import Konva from "konva";
 import { MapElement } from "@/src/types/mapElement";
+import { KonvaEventObject } from "konva/lib/Node";
 
 type MapEditorCanvasProps = {
+  onCanvasClick: (pos: { x: number; y: number }) => void;
   width: number;
   height: number;
   elements: MapElement[];
@@ -29,6 +31,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   setElements,
   selectedIds,
   onSelectElements,
+  onCanvasClick = () => {},
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -111,7 +114,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
         y1: box.y,
         x2: box.x + box.width,
         y2: box.y + box.height,
-      }),
+      })
     );
 
     onSelectElements(selected);
@@ -138,7 +141,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
 
   const handleTransformEnd = (
     e: Konva.KonvaEventObject<Event>,
-    el: MapElement,
+    el: MapElement
   ) => {
     const node = e.target;
     const scaleX = node.scaleX();
@@ -157,8 +160,18 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     node.scaleY(1);
 
     setElements((prev) =>
-      prev.map((item) => (item.id === el.id ? updated : item)),
+      prev.map((item) => (item.id === el.id ? updated : item))
     );
+  };
+  const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
+    const stage = e.target.getStage();
+    if (stage) {
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        onSelectElements([]); // deselect
+        onCanvasClick(pointerPos); // ⬅️ Parent'a bildir
+      }
+    }
   };
 
   const renderElement = (el: MapElement) => {
@@ -183,7 +196,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               y: node.y(),
             };
             setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item)),
+              prev.map((item) => (item.id === el.id ? updated : item))
             );
           }}
         >
@@ -220,7 +233,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               y: node.y(),
             };
             setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item)),
+              prev.map((item) => (item.id === el.id ? updated : item))
             );
           }}
           onTransformEnd={(e) => handleTransformEnd(e, el)}
@@ -270,7 +283,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
             y: node.y(),
           };
           setElements((prev) =>
-            prev.map((item) => (item.id === el.id ? updated : item)),
+            prev.map((item) => (item.id === el.id ? updated : item))
           );
         }}
         onTransformEnd={(e) => handleTransformEnd(e, el)}
@@ -307,6 +320,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onClick={handleStageClick}
       >
         <Layer>
           {elements.map((el) => renderElement(el))}

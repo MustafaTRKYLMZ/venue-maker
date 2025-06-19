@@ -16,7 +16,7 @@ export type LeftPanelToolsTypes = {
     cols: number,
     seatWidth: number,
     seatHeight: number,
-    gap?: number,
+    gap?: number
   ) => void;
 };
 
@@ -29,8 +29,8 @@ export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
   addSeatsGrid,
 }) => {
   return (
-    <aside className="w-64 bg-gray-100 p-4 border-r border-gray-200 flex-shrink-0">
-      <h2 className="text-xl font-semibold mb-4">Tools</h2>
+    <aside className="w-20 bg-white shahow p-4 border-r border-t border-gray-200 flex-shrink-0">
+      <h2 className="text-xl text-gray-800 font-semibold mb-4">Tools</h2>
       <Tools handleAddButtonClick={handleAddButtonClick} />
       <AddMultipleSeat
         rows={rows}
