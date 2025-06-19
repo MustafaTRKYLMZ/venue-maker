@@ -12,16 +12,35 @@ import {
 } from "react-konva";
 import Konva from "konva";
 import { MapElement } from "@/src/types/mapElement";
+import { ElementType } from "@/src/types/element";
 import { KonvaEventObject } from "konva/lib/Node";
 
 type MapEditorCanvasProps = {
-  onCanvasClick: (pos: { x: number; y: number }) => void;
   width: number;
   height: number;
   elements: MapElement[];
   setElements: React.Dispatch<React.SetStateAction<MapElement[]>>;
   selectedIds: string[];
   onSelectElements: (elements: MapElement[]) => void;
+  selectedTool: ElementType | null;
+  addElementAtPosition: (
+    type: ElementType,
+    position: { x: number; y: number },
+  ) => void;
+  setSelectedTool: (tool: string | null) => void;
+  addSeatsGrid: (
+    position: { x: number; y: number },
+    rows: number,
+    cols: number,
+    seatWidth: number,
+    seatHeight: number,
+    gap?: number,
+  ) => void;
+
+  multipleSeatsGridFields?: {
+    rows: number;
+    cols: number;
+  };
 };
 
 export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
@@ -31,7 +50,11 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   setElements,
   selectedIds,
   onSelectElements,
-  onCanvasClick = () => {},
+  selectedTool,
+  addElementAtPosition,
+  setSelectedTool,
+  addSeatsGrid,
+  multipleSeatsGridFields = { rows: 0, cols: 0 },
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -46,14 +69,16 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
 
   useEffect(() => {
     const transformer = transformerRef.current;
+
     if (!transformer) return;
+    requestAnimationFrame(() => {
+      const selectedNodes = selectedIds
+        .map((id) => elementRefs.current[id])
+        .filter(Boolean) as Konva.Node[];
 
-    const selectedNodes = selectedIds
-      .map((id) => elementRefs.current[id])
-      .filter(Boolean) as Konva.Node[];
-
-    transformer.nodes(selectedNodes);
-    transformer.getLayer()?.batchDraw();
+      transformer.nodes(selectedNodes);
+      transformer.getLayer()?.batchDraw();
+    });
   }, [selectedIds]);
 
   const getElementBounds = (el: MapElement) => ({
@@ -114,7 +139,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
         y1: box.y,
         x2: box.x + box.width,
         y2: box.y + box.height,
-      })
+      }),
     );
 
     onSelectElements(selected);
@@ -141,7 +166,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
 
   const handleTransformEnd = (
     e: Konva.KonvaEventObject<Event>,
-    el: MapElement
+    el: MapElement,
   ) => {
     const node = e.target;
     const scaleX = node.scaleX();
@@ -160,17 +185,42 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     node.scaleY(1);
 
     setElements((prev) =>
-      prev.map((item) => (item.id === el.id ? updated : item))
+      prev.map((item) => (item.id === el.id ? updated : item)),
     );
   };
+
   const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
+    if (e.target !== e.target.getStage()) {
+      return;
+    }
     const stage = e.target.getStage();
-    if (stage) {
-      const pointerPos = stage.getPointerPosition();
-      if (pointerPos) {
-        onSelectElements([]); // deselect
-        onCanvasClick(pointerPos); // ⬅️ Parent'a bildir
+    if (!stage) return;
+
+    const pointerPos = stage.getPointerPosition();
+    if (!pointerPos) return;
+
+    const container = stage.container();
+
+    if (selectedTool === "multiple_seat") {
+      if (
+        multipleSeatsGridFields.rows > 0 &&
+        multipleSeatsGridFields.cols > 0
+      ) {
+        addSeatsGrid(
+          pointerPos,
+          multipleSeatsGridFields.rows,
+          multipleSeatsGridFields.cols,
+          40,
+          40,
+        );
       }
+      setSelectedTool(null);
+    } else if (selectedTool) {
+      addElementAtPosition(selectedTool, pointerPos);
+      setSelectedTool(null);
+      if (container) container.style.cursor = "default";
+    } else {
+      onSelectElements([]);
     }
   };
 
@@ -196,7 +246,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               y: node.y(),
             };
             setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item))
+              prev.map((item) => (item.id === el.id ? updated : item)),
             );
           }}
         >
@@ -233,7 +283,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
               y: node.y(),
             };
             setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item))
+              prev.map((item) => (item.id === el.id ? updated : item)),
             );
           }}
           onTransformEnd={(e) => handleTransformEnd(e, el)}
@@ -283,7 +333,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
             y: node.y(),
           };
           setElements((prev) =>
-            prev.map((item) => (item.id === el.id ? updated : item))
+            prev.map((item) => (item.id === el.id ? updated : item)),
           );
         }}
         onTransformEnd={(e) => handleTransformEnd(e, el)}

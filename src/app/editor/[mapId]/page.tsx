@@ -23,12 +23,12 @@ import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 const DynamicMapEditorCanvas = dynamic(
   () =>
     import("@/src/components/MapEditorCanvas").then(
-      (mod) => mod.MapEditorCanvas
+      (mod) => mod.MapEditorCanvas,
     ),
   {
     ssr: false,
     loading: () => <p className="text-gray-500">Loading canvas...</p>,
-  }
+  },
 );
 
 export default function MapEditorPage() {
@@ -40,23 +40,23 @@ export default function MapEditorPage() {
   const [elements, setElements] = useState<MapElement[]>([]);
   const [history, setHistory] = useState<MapElement[][]>([[]]);
   const [historyPointer, setHistoryPointer] = useState(0);
-  const [rows, setRows] = useState(3);
-  const [cols, setCols] = useState(4);
-  const [isAddingSeat, setIsAddingSeat] = useState(false);
+
   // Flag to prevent infinite loop when updating elements from history
   const isUpdatingFromHistory = useRef(false);
 
   // --- MULTI-SELECTION STATE ---
-  const [selectedElements, setSelectedElements] = useState<MapElement[]>([]); // Changed from selectedElement
-  const [lastClickedPosition, setLastClickedPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+  const [selectedElements, setSelectedElements] = useState<MapElement[]>([]);
+
   // COPY/PASTE STATE
   const [copiedElement, setCopiedElement] = useState<MapElement | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ElementType | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isMapLoading, setIsMapLoading] = useState(true);
+  const [multipleSeatsGridFields, setMultipleSeatsGridFields] = useState({
+    rows: 7,
+    cols: 7,
+  });
 
   // Effect to manage history when elements state changes
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function MapEditorPage() {
             console.log("Map loaded successfully:", loadedElements);
           } else {
             console.warn(
-              "Map data found but 'elements' field is missing or not an array."
+              "Map data found but 'elements' field is missing or not an array.",
             );
           }
         } else {
@@ -122,23 +122,33 @@ export default function MapEditorPage() {
     fetchMap();
   }, [mapId]);
 
+  useEffect(() => {
+    const container = document.querySelector(".konvajs-content");
+    if (container) {
+      (container as HTMLElement).style.cursor = selectedTool
+        ? "crosshair"
+        : "default";
+    }
+  }, [selectedTool]);
+
   const canvasWidth = 1000;
   const canvasHeight = 700;
+  const handleSelectElements = useCallback((els: MapElement[]) => {
+    setSelectedElements(els);
+  }, []);
 
-  const handleAddButtonClick = useCallback(
-    (type: ElementType) => {
-      let newElement: MapElement | null = null;
+  const addElementAtPosition = useCallback(
+    (type: ElementType, position: { x: number; y: number }) => {
       const id = uuidv4();
-      const centerX = lastClickedPosition?.x ?? canvasWidth / 2;
-      const centerY = lastClickedPosition?.y ?? canvasHeight / 2;
+      let newElement: MapElement | null = null;
 
       switch (type) {
         case "seat":
           newElement = {
             id: `seat-${id.substring(0, 4)}`,
             type: "seat",
-            x: centerX - 15,
-            y: centerY - 15,
+            x: position.x - 15,
+            y: position.y - 15,
             width: 30,
             height: 30,
             fill: "#4CAF50",
@@ -151,8 +161,8 @@ export default function MapEditorPage() {
           newElement = {
             id: `stage-${id.substring(0, 4)}`,
             type: "stage",
-            x: centerX - 100,
-            y: centerY - 40,
+            x: position.x - 100,
+            y: position.y - 40,
             width: 200,
             height: 80,
             fill: "#607D8B",
@@ -165,8 +175,8 @@ export default function MapEditorPage() {
           newElement = {
             id: `text-${id.substring(0, 4)}`,
             type: "text",
-            x: centerX - 50,
-            y: centerY - 15,
+            x: position.x - 50,
+            y: position.y - 15,
             width: 100,
             height: 30,
             text: "New Text",
@@ -179,8 +189,8 @@ export default function MapEditorPage() {
           newElement = {
             id: `wall-${id.substring(0, 4)}`,
             type: "wall",
-            x: centerX - 100,
-            y: centerY - 5,
+            x: position.x - 100,
+            y: position.y - 5,
             width: 200,
             height: 10,
             fill: "#795548",
@@ -194,39 +204,53 @@ export default function MapEditorPage() {
       }
 
       if (newElement) {
-        setElements((prevElements) => [...prevElements, newElement!]);
-        setSelectedElements([newElement]); // Select the new element
+        setElements((prev) => [...prev, newElement!]);
+        handleSelectElements([newElement]);
+      } else {
+        setSelectedTool(null);
       }
     },
-    [canvasWidth, canvasHeight]
+    [setElements, handleSelectElements],
   );
 
-  // Handle selection from MapEditorCanvas
-  const handleSelectElements = useCallback((els: MapElement[]) => {
-    setSelectedElements(els);
-  }, []);
-
+  const handleAddButtonClick = useCallback(
+    (type: ElementType) => {
+      setSelectedTool(type);
+    },
+    [setSelectedTool],
+  );
+  //handle multiple seats grid
+  const onConfirmAddSeats = useCallback(
+    (type: ElementType, rows: number, cols: number) => {
+      setSelectedTool(type);
+      setMultipleSeatsGridFields({
+        rows: rows,
+        cols: cols,
+      });
+    },
+    [],
+  );
   // Update a single element (used by PropertiesPanel and keyboard shortcuts)
   const handleUpdateElement = useCallback((updatedElement: MapElement) => {
     setElements((prevElements) =>
       prevElements.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el
-      )
+        el.id === updatedElement.id ? updatedElement : el,
+      ),
     );
     setSelectedElements((prevSelected) =>
       prevSelected.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el
-      )
+        el.id === updatedElement.id ? updatedElement : el,
+      ),
     );
   }, []);
 
   // Delete a single element (used by PropertiesPanel and keyboard shortcuts)
   const handleDeleteElement = useCallback((elementId: string) => {
     setElements((prevElements) =>
-      prevElements.filter((el) => el.id !== elementId)
+      prevElements.filter((el) => el.id !== elementId),
     );
     setSelectedElements((prevSelected) =>
-      prevSelected.filter((el) => el.id !== elementId)
+      prevSelected.filter((el) => el.id !== elementId),
     );
   }, []);
 
@@ -311,7 +335,7 @@ export default function MapEditorPage() {
     // Add the new group element
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => !selectedElements.some((selEl) => selEl.id === el.id)
+        (el) => !selectedElements.some((selEl) => selEl.id === el.id),
       );
       return [...remainingElements, newGroup];
     });
@@ -338,7 +362,7 @@ export default function MapEditorPage() {
     // Remove the group from elements array and add its children back
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => el.id !== groupToUngroup.id
+        (el) => el.id !== groupToUngroup.id,
       );
       return [...remainingElements, ...ungroupedChildren];
     });
@@ -390,8 +414,8 @@ export default function MapEditorPage() {
         // Update selectedElements array with new positions
         setSelectedElements(
           newElements.filter((el) =>
-            selectedElements.some((selEl) => selEl.id === el.id)
-          )
+            selectedElements.some((selEl) => selEl.id === el.id),
+          ),
         );
         return;
       }
@@ -402,7 +426,7 @@ export default function MapEditorPage() {
         if (selectedElements.length > 0) {
           const selectedIdsToDelete = selectedElements.map((el) => el.id);
           setElements((prevElements) =>
-            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id))
+            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id)),
           );
           setSelectedElements([]);
           console.log("Elements deleted:", selectedIdsToDelete);
@@ -419,7 +443,7 @@ export default function MapEditorPage() {
         } else if (selectedElements.length > 1) {
           // For multiple selected elements, copy the first one or implement multi-element copy
           alert(
-            "Multi-element copy is not yet implemented. Copying only the first selected element."
+            "Multi-element copy is not yet implemented. Copying only the first selected element.",
           );
           setCopiedElement(selectedElements[0]);
         }
@@ -448,9 +472,48 @@ export default function MapEditorPage() {
       setElements,
       handleDeleteElement,
       setSelectedElements,
-    ]
+    ],
   );
+  const addSeatsGrid = useCallback(
+    (
+      position: { x: number; y: number },
+      rows: number,
+      cols: number,
+      seatWidth: number,
+      seatHeight: number,
+      gap: number = 10,
+    ) => {
+      const newSeats: MapElement[] = [];
 
+      const totalGridWidth = cols * seatWidth + (cols - 1) * gap;
+      const totalGridHeight = rows * seatHeight + (rows - 1) * gap;
+
+      const startX = position.x - totalGridWidth / 2;
+      const startY = position.y - totalGridHeight / 2;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const id = `seat-${uuidv4().substring(0, 4)}-${row}-${col}`;
+          newSeats.push({
+            id,
+            type: "seat",
+            x: startX + col * (seatWidth + gap),
+            y: startY + row * (seatHeight + gap),
+            width: seatWidth,
+            height: seatHeight,
+            fill: "#4CAF50",
+            text: `S${row + 1}-${col + 1}`,
+            fontSize: 14,
+            draggable: true,
+          });
+        }
+      }
+
+      setElements((prev) => [...prev, ...newSeats]);
+      handleSelectElements(newSeats);
+    },
+    [setElements, handleSelectElements],
+  );
   // Attach and detach keyboard event listener
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -472,36 +535,6 @@ export default function MapEditorPage() {
   const elementForPropertiesPanel =
     selectedElements.length === 1 ? selectedElements[0] : null;
 
-  const addSeatsGrid = (
-    startX: number,
-    startY: number,
-    rows: number,
-    cols: number,
-    seatWidth: number,
-    seatHeight: number,
-    gap: number = 10
-  ) => {
-    const newSeats: MapElement[] = [];
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const id = `seat-${Date.now()}-${row}-${col}`;
-        newSeats.push({
-          id,
-          type: "seat",
-          x: startX + col * (seatWidth + gap),
-          y: startY + row * (seatHeight + gap),
-          width: seatWidth,
-          height: seatHeight,
-          fill: "lightgray",
-          text: `S${row + 1}-${col + 1}`,
-          draggable: true,
-        });
-      }
-    }
-
-    setElements((prev) => [...prev, ...newSeats]);
-  };
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <MapEditorHeader
@@ -521,23 +554,33 @@ export default function MapEditorPage() {
         {/* Left Panel: Tools */}
         <LeftPanelTools
           handleAddButtonClick={handleAddButtonClick}
-          rows={rows}
-          setRows={setRows}
-          cols={cols}
-          setCols={setCols}
-          addSeatsGrid={addSeatsGrid}
+          rows={multipleSeatsGridFields.rows}
+          setRows={(value) =>
+            setMultipleSeatsGridFields((prev) => ({ ...prev, rows: value }))
+          }
+          cols={multipleSeatsGridFields.cols}
+          setCols={(value) =>
+            setMultipleSeatsGridFields((prev) => ({ ...prev, cols: value }))
+          }
+          onConfirmAddSeats={onConfirmAddSeats}
         />
 
         {/* Main Work Area: Canvas */}
         <main className="flex-1 p-4 flex items-center justify-center bg-gray-200 overflow-auto">
           <DynamicMapEditorCanvas
+            selectedTool={selectedTool}
+            setSelectedTool={(tool) =>
+              setSelectedTool(tool as ElementType | null)
+            }
+            addElementAtPosition={addElementAtPosition}
             width={canvasWidth}
             height={canvasHeight}
             elements={elements}
             setElements={setElements}
-            selectedIds={selectedElements.map((el) => el.id)} // Pass IDs
-            onSelectElements={handleSelectElements} // Pass new handler
-            onCanvasClick={(pos) => setLastClickedPosition(pos)}
+            selectedIds={selectedElements.map((el) => el.id)}
+            onSelectElements={handleSelectElements}
+            multipleSeatsGridFields={multipleSeatsGridFields}
+            addSeatsGrid={addSeatsGrid}
           />
         </main>
 

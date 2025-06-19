@@ -1,18 +1,11 @@
 import React from "react";
+import { ElementType } from "../types/element";
 
 export type AddMultipleSeatDialogProps = {
   rows: number;
   setRows: (value: number) => void;
   setCols: (value: number) => void;
-  addSeatsGrid: (
-    startX: number,
-    startY: number,
-    rows: number,
-    cols: number,
-    seatWidth: number,
-    seatHeight: number,
-    gap?: number
-  ) => void;
+  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
   cols: number;
   onClose: () => void;
   positionClasses?: string; // Tailwind CSS konumlandırma sınıfları (örn: 'top-0 right-0')
@@ -22,13 +15,14 @@ export const AddMultipleSeatDialog = ({
   rows,
   setRows,
   setCols,
-  addSeatsGrid,
+  onConfirmAddSeats,
   cols,
   onClose,
   positionClasses = "top-0 right-0",
 }: AddMultipleSeatDialogProps) => {
   const handleAddGrid = () => {
-    addSeatsGrid(50, 50, rows, cols, 40, 40);
+    const type = "multiple_seat";
+    onConfirmAddSeats(type, rows, cols);
     onClose();
   };
 

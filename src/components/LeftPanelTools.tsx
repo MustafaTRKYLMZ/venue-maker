@@ -9,15 +9,7 @@ export type LeftPanelToolsTypes = {
   setRows: (value: number) => void;
   cols: number;
   setCols: (value: number) => void;
-  addSeatsGrid: (
-    startX: number,
-    startY: number,
-    rows: number,
-    cols: number,
-    seatWidth: number,
-    seatHeight: number,
-    gap?: number
-  ) => void;
+  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
 };
 
 export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
@@ -26,7 +18,7 @@ export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
   setRows,
   cols,
   setCols,
-  addSeatsGrid,
+  onConfirmAddSeats,
 }) => {
   return (
     <aside className="w-20 bg-white shahow p-4 border-r border-t border-gray-200 flex-shrink-0">
@@ -37,7 +29,8 @@ export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
         setRows={setRows}
         cols={cols}
         setCols={setCols}
-        addSeatsGrid={addSeatsGrid}
+        // addSeatsGrid={addSeatsGrid}
+        onConfirmAddSeats={onConfirmAddSeats}
       />
     </aside>
   );

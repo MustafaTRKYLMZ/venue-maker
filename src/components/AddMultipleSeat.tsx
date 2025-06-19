@@ -2,27 +2,20 @@ import { IconButton } from "./IconButton";
 import { useState } from "react";
 import { AddMultipleSeatDialog } from "./AddMultipleSeatDialog";
 import { FaTh } from "react-icons/fa";
+import { ElementType } from "../types/element";
 
 export type AddMultipleSeatProps = {
   rows: number;
   setRows: (value: number) => void;
   setCols: (value: number) => void;
-  addSeatsGrid: (
-    startX: number,
-    startY: number,
-    rows: number,
-    cols: number,
-    seatWidth: number,
-    seatHeight: number,
-    gap?: number
-  ) => void;
+  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
   cols: number;
 };
 export const AddMultipleSeat = ({
   rows,
   setRows,
   setCols,
-  addSeatsGrid,
+  onConfirmAddSeats,
   cols,
 }: AddMultipleSeatProps) => {
   const [isMultipleSeatDialogOpen, setIsMultipleSeatDialogOpen] =
@@ -52,7 +45,7 @@ export const AddMultipleSeat = ({
             setRows={setRows}
             cols={cols}
             setCols={setCols}
-            addSeatsGrid={addSeatsGrid}
+            onConfirmAddSeats={onConfirmAddSeats}
             onClose={handleCloseMultipleSeatDialog}
             positionClasses="left-full top-0 ml-4"
           />

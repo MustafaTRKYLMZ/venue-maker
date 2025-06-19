@@ -1,1 +1,7 @@
-export type ElementType = "seat" | "stage" | "text" | "wall" | "group";
+export type ElementType =
+  | "seat"
+  | "stage"
+  | "text"
+  | "wall"
+  | "group"
+  | "multiple_seat";
