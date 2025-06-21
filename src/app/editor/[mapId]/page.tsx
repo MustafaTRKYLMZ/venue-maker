@@ -23,12 +23,12 @@ import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 const DynamicMapEditorCanvas = dynamic(
   () =>
     import("@/src/components/MapEditorCanvas").then(
-      (mod) => mod.MapEditorCanvas,
+      (mod) => mod.MapEditorCanvas
     ),
   {
     ssr: false,
     loading: () => <p className="text-gray-500">Loading canvas...</p>,
-  },
+  }
 );
 
 export default function MapEditorPage() {
@@ -99,7 +99,7 @@ export default function MapEditorPage() {
             console.log("Map loaded successfully:", loadedElements);
           } else {
             console.warn(
-              "Map data found but 'elements' field is missing or not an array.",
+              "Map data found but 'elements' field is missing or not an array."
             );
           }
         } else {
@@ -210,14 +210,14 @@ export default function MapEditorPage() {
         setSelectedTool(null);
       }
     },
-    [setElements, handleSelectElements],
+    [setElements, handleSelectElements]
   );
 
   const handleAddButtonClick = useCallback(
     (type: ElementType) => {
       setSelectedTool(type);
     },
-    [setSelectedTool],
+    [setSelectedTool]
   );
   //handle multiple seats grid
   const onConfirmAddSeats = useCallback(
@@ -228,29 +228,29 @@ export default function MapEditorPage() {
         cols: cols,
       });
     },
-    [],
+    []
   );
   // Update a single element (used by PropertiesPanel and keyboard shortcuts)
   const handleUpdateElement = useCallback((updatedElement: MapElement) => {
     setElements((prevElements) =>
       prevElements.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el,
-      ),
+        el.id === updatedElement.id ? updatedElement : el
+      )
     );
     setSelectedElements((prevSelected) =>
       prevSelected.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el,
-      ),
+        el.id === updatedElement.id ? updatedElement : el
+      )
     );
   }, []);
 
   // Delete a single element (used by PropertiesPanel and keyboard shortcuts)
   const handleDeleteElement = useCallback((elementId: string) => {
     setElements((prevElements) =>
-      prevElements.filter((el) => el.id !== elementId),
+      prevElements.filter((el) => el.id !== elementId)
     );
     setSelectedElements((prevSelected) =>
-      prevSelected.filter((el) => el.id !== elementId),
+      prevSelected.filter((el) => el.id !== elementId)
     );
   }, []);
 
@@ -322,6 +322,7 @@ export default function MapEditorPage() {
       y: minY,
       width: maxX - minX,
       height: maxY - minY,
+      layout: "arc",
       draggable: true,
       children: selectedElements.map((el) => ({
         ...el,
@@ -335,7 +336,7 @@ export default function MapEditorPage() {
     // Add the new group element
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => !selectedElements.some((selEl) => selEl.id === el.id),
+        (el) => !selectedElements.some((selEl) => selEl.id === el.id)
       );
       return [...remainingElements, newGroup];
     });
@@ -362,7 +363,7 @@ export default function MapEditorPage() {
     // Remove the group from elements array and add its children back
     setElements((prevElements) => {
       const remainingElements = prevElements.filter(
-        (el) => el.id !== groupToUngroup.id,
+        (el) => el.id !== groupToUngroup.id
       );
       return [...remainingElements, ...ungroupedChildren];
     });
@@ -414,8 +415,8 @@ export default function MapEditorPage() {
         // Update selectedElements array with new positions
         setSelectedElements(
           newElements.filter((el) =>
-            selectedElements.some((selEl) => selEl.id === el.id),
-          ),
+            selectedElements.some((selEl) => selEl.id === el.id)
+          )
         );
         return;
       }
@@ -426,7 +427,7 @@ export default function MapEditorPage() {
         if (selectedElements.length > 0) {
           const selectedIdsToDelete = selectedElements.map((el) => el.id);
           setElements((prevElements) =>
-            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id)),
+            prevElements.filter((el) => !selectedIdsToDelete.includes(el.id))
           );
           setSelectedElements([]);
           console.log("Elements deleted:", selectedIdsToDelete);
@@ -443,7 +444,7 @@ export default function MapEditorPage() {
         } else if (selectedElements.length > 1) {
           // For multiple selected elements, copy the first one or implement multi-element copy
           alert(
-            "Multi-element copy is not yet implemented. Copying only the first selected element.",
+            "Multi-element copy is not yet implemented. Copying only the first selected element."
           );
           setCopiedElement(selectedElements[0]);
         }
@@ -472,7 +473,7 @@ export default function MapEditorPage() {
       setElements,
       handleDeleteElement,
       setSelectedElements,
-    ],
+    ]
   );
   const addSeatsGrid = useCallback(
     (
@@ -481,7 +482,7 @@ export default function MapEditorPage() {
       cols: number,
       seatWidth: number,
       seatHeight: number,
-      gap: number = 10,
+      gap: number = 10
     ) => {
       const newSeats: MapElement[] = [];
 
@@ -512,7 +513,7 @@ export default function MapEditorPage() {
       setElements((prev) => [...prev, ...newSeats]);
       handleSelectElements(newSeats);
     },
-    [setElements, handleSelectElements],
+    [setElements, handleSelectElements]
   );
   // Attach and detach keyboard event listener
   useEffect(() => {
