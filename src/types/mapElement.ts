@@ -1,5 +1,5 @@
 // types/mapElement.ts
-import { ElementType } from "./element";
+import { ElementType } from "./element"; // Make sure this path is correct
 
 export interface MapElement {
   id: string;
@@ -8,12 +8,20 @@ export interface MapElement {
   y: number;
   width: number;
   height: number;
-  fill?: string; // Fill is optional for group
+  fill?: string;
   draggable: boolean;
   text?: string;
   fontSize?: number;
   rotation?: number;
   stroke?: string;
   strokeWidth?: number;
-  children?: MapElement[]; // NEW: For group elements
+
+  children?: MapElement[]; 
+  edgeCurvatures?: [number, number, number, number]; 
+  cornerRadii?: [number, number, number, number]; 
+
+  initialWidth?: number; 
+  initialHeight?: number; 
+  initialX?: number;
+  initialY?: number;
 }

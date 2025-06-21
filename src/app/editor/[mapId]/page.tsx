@@ -322,7 +322,7 @@ export default function MapEditorPage() {
       y: minY,
       width: maxX - minX,
       height: maxY - minY,
-      layout: "arc",
+
       draggable: true,
       children: selectedElements.map((el) => ({
         ...el,

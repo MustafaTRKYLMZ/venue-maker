@@ -9,6 +9,7 @@ import {
   Group,
   Transformer,
   Circle,
+  Shape,
 } from "react-konva";
 import Konva from "konva";
 import { MapElement } from "@/src/types/mapElement";
@@ -25,7 +26,7 @@ type MapEditorCanvasProps = {
   selectedTool: ElementType | null;
   addElementAtPosition: (
     type: ElementType,
-    position: { x: number; y: number },
+    position: { x: number; y: number }
   ) => void;
   setSelectedTool: (tool: string | null) => void;
   addSeatsGrid: (
@@ -34,7 +35,7 @@ type MapEditorCanvasProps = {
     cols: number,
     seatWidth: number,
     seatHeight: number,
-    gap?: number,
+    gap?: number
   ) => void;
 
   multipleSeatsGridFields?: {
@@ -66,6 +67,14 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   const [selectionVisible, setSelectionVisible] = useState(false);
 
   const elementRefs = useRef<Record<string, Konva.Node>>({});
+
+  // Yeni: Grup yay deformasyonları (top, right, bottom, left)
+  const [groupEdgeBends, setGroupEdgeBends] = useState({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  });
 
   useEffect(() => {
     const transformer = transformerRef.current;
@@ -139,7 +148,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
         y1: box.y,
         x2: box.x + box.width,
         y2: box.y + box.height,
-      }),
+      })
     );
 
     onSelectElements(selected);
@@ -166,7 +175,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
 
   const handleTransformEnd = (
     e: Konva.KonvaEventObject<Event>,
-    el: MapElement,
+    el: MapElement
   ) => {
     const node = e.target;
     const scaleX = node.scaleX();
@@ -185,7 +194,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     node.scaleY(1);
 
     setElements((prev) =>
-      prev.map((item) => (item.id === el.id ? updated : item)),
+      prev.map((item) => (item.id === el.id ? updated : item))
     );
   };
 
@@ -211,7 +220,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
           multipleSeatsGridFields.rows,
           multipleSeatsGridFields.cols,
           40,
-          40,
+          40
         );
       }
       setSelectedTool(null);
@@ -224,166 +233,349 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     }
   };
 
-  const renderElement = (el: MapElement) => {
+  // Grup içindeki çocuk pozisyonlarını edgeBends ile biraz modifiye ediyoruz
+  const applyEdgeBendsToChild = (
+    child: MapElement,
+    group: MapElement,
+    bends: typeof groupEdgeBends
+  ): { x: number; y: number } => {
+    let newX = child.x;
+    let newY = child.y;
+
+    const relX = child.x;
+    const relY = child.y;
+    const w = group.width;
+    const h = group.height;
+
+    const topEffect = bends.top * (1 - Math.abs(relX - w / 2) / (w / 2));
+    const rightEffect = bends.right * (1 - Math.abs(relY - h / 2) / (h / 2));
+    const bottomEffect = bends.bottom * (1 - Math.abs(relX - w / 2) / (w / 2));
+    const leftEffect = bends.left * (1 - Math.abs(relY - h / 2) / (h / 2));
+
+    newX += rightEffect + leftEffect;
+    newY += topEffect + bottomEffect;
+
+    return { x: newX, y: newY };
+  };
+
+  // Yeni: grup için özel render fonksiyonu
+  const renderGroupElement = (el: MapElement) => {
     const isSelected = selectedIds.includes(el.id);
 
-    if (el.type === "group" && el.children) {
-      return (
-        <Group
-          key={el.id}
-          ref={(ref) => {
-            if (ref) elementRefs.current[el.id] = ref;
-          }}
-          x={el.x}
-          y={el.y}
-          draggable
-          onClick={(e) => handleElementClick(e, el)}
-          onDragEnd={(e) => {
-            const node = e.target;
-            const updated = {
-              ...el,
-              x: node.x(),
-              y: node.y(),
-            };
-            setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item)),
-            );
-          }}
-        >
-          {el.children.map((child) => renderElement(child))}
-          {isSelected && (
-            <Rect
-              x={0}
-              y={0}
-              width={el.width}
-              height={el.height}
-              stroke="blue"
-              strokeWidth={2}
-              dash={[4, 4]}
-            />
-          )}
-        </Group>
-      );
-    } else if (el.type === "seat") {
-      return (
-        <Group
-          key={el.id}
-          ref={(ref) => {
-            if (ref) elementRefs.current[el.id] = ref;
-          }}
-          x={el.x}
-          y={el.y}
-          draggable
-          onClick={(e) => handleElementClick(e, el)}
-          onDragEnd={(e) => {
-            const node = e.target;
-            const updated = {
-              ...el,
-              x: node.x(),
-              y: node.y(),
-            };
-            setElements((prev) =>
-              prev.map((item) => (item.id === el.id ? updated : item)),
-            );
-          }}
-          onTransformEnd={(e) => handleTransformEnd(e, el)}
-        >
-          <Circle
-            x={el.width / 2}
-            y={el.height / 2}
-            radius={el.width / 2}
-            fill={el.fill}
-            stroke={isSelected ? "blue" : undefined}
-            strokeWidth={isSelected ? 2 : 0}
-          />
-          {el.text && (
-            <Text
-              text={el.text}
-              fontSize={el.fontSize || 12}
-              fill="black"
-              align="center"
-              verticalAlign="middle"
-              width={el.width}
-              height={el.height}
-              offsetX={el.width / 2}
-              offsetY={el.height / 2}
-              x={el.width / 2}
-              y={el.height / 2}
-            />
-          )}
-        </Group>
-      );
-    }
-
+    // Burada yay deformasyonuna göre grup şekli çiziliyor
     return (
       <Group
         key={el.id}
-        ref={(ref) => {
-          if (ref) elementRefs.current[el.id] = ref;
-        }}
         x={el.x}
         y={el.y}
-        draggable
-        onClick={(e) => handleElementClick(e, el)}
-        onDragEnd={(e) => {
-          const node = e.target;
-          const updated = {
-            ...el,
-            x: node.x(),
-            y: node.y(),
-          };
-          setElements((prev) =>
-            prev.map((item) => (item.id === el.id ? updated : item)),
-          );
-        }}
-        onTransformEnd={(e) => handleTransformEnd(e, el)}
+        // grup sabit kalacak, draggable olabilir istersen buraya draggable ekle
       >
-        <Rect
-          width={el.width}
-          height={el.height}
-          fill={el.fill}
-          stroke={isSelected ? "blue" : undefined}
-          strokeWidth={isSelected ? 2 : 0}
+        {/* Grup sınırlarını çiziyoruz, yay deformasyonu ile */}
+        <Shape
+          sceneFunc={(ctx, shape) => {
+            const w = el.width;
+            const h = el.height;
+            const b = groupEdgeBends;
+
+            ctx.beginPath();
+
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(w / 2, b.top, w, 0);
+            ctx.quadraticCurveTo(w + b.right, h / 2, w, h);
+            ctx.quadraticCurveTo(w / 2, h + b.bottom, 0, h);
+            ctx.quadraticCurveTo(b.left, h / 2, 0, 0);
+
+            ctx.closePath();
+
+            ctx.fillStyle = el.fill || "transparent";
+            ctx.fill();
+
+            ctx.strokeStyle = isSelected ? "blue" : "gray";
+            ctx.lineWidth = isSelected ? 2 : 1;
+            ctx.stroke();
+          }}
         />
-        {el.text && (
-          <Text
-            text={el.text}
-            fontSize={el.fontSize || 16}
-            fill="black"
-            width={el.width}
-            align="center"
-            verticalAlign="middle"
-            y={(el.height - (el.fontSize || 16)) / 2}
-          />
-        )}
+
+        {/* Çocukları çiziyoruz, pozisyonları yay deformasyonuna göre ayarlanıyor */}
+        {el.children?.map((child) => {
+          const pos = applyEdgeBendsToChild(child, el, groupEdgeBends);
+          const isChildSelected = selectedIds.includes(child.id);
+
+          return (
+            <Group
+              key={child.id}
+              x={pos.x}
+              y={pos.y}
+              draggable
+              onClick={(e) => handleElementClick(e, child)}
+              onDragEnd={(e) => {
+                const node = e.target;
+                const updated = {
+                  ...child,
+                  x: node.x(),
+                  y: node.y(),
+                };
+                setElements((prev) =>
+                  prev.map((item) => (item.id === child.id ? updated : item))
+                );
+              }}
+              onTransformEnd={(e) => handleTransformEnd(e, child)}
+            >
+              {/* Örnek: seat tipi ise circle ile çiz */}
+              {child.type === "seat" ? (
+                <>
+                  <Circle
+                    x={child.width / 2}
+                    y={child.height / 2}
+                    radius={child.width / 2}
+                    fill={child.fill}
+                    stroke={isChildSelected ? "blue" : undefined}
+                    strokeWidth={isChildSelected ? 2 : 0}
+                  />
+                  {child.text && (
+                    <Text
+                      text={child.text}
+                      fontSize={child.fontSize || 12}
+                      fill="black"
+                      align="center"
+                      verticalAlign="middle"
+                      width={child.width}
+                      height={child.height}
+                      offsetX={child.width / 2}
+                      offsetY={child.height / 2}
+                      x={child.width / 2}
+                      y={child.height / 2}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <Rect
+                    width={child.width}
+                    height={child.height}
+                    fill={child.fill}
+                    stroke={isChildSelected ? "blue" : undefined}
+                    strokeWidth={isChildSelected ? 2 : 0}
+                  />
+                  {child.text && (
+                    <Text
+                      text={child.text}
+                      fontSize={child.fontSize || 16}
+                      fill="black"
+                      width={child.width}
+                      height={child.height}
+                      align="center"
+                      verticalAlign="middle"
+                    />
+                  )}
+                </>
+              )}
+            </Group>
+          );
+        })}
+
+        {/* Yay deformasyonu için kenar ortası kontrol noktaları */}
+        {/* Üst-orta */}
+        <Circle
+          key="bend-top"
+          x={el.width / 2}
+          y={groupEdgeBends.top}
+          radius={8}
+          fill="red"
+          draggable
+          dragBoundFunc={(pos) => {
+            const minY = -el.height / 2;
+            const maxY = el.height / 2;
+            let y = Math.min(Math.max(pos.y, minY), maxY);
+            return { x: el.width / 2, y };
+          }}
+          onDragMove={(e) => {
+            const pos = e.target.position();
+            setGroupEdgeBends((prev) => ({ ...prev, top: pos.y }));
+          }}
+        />
+
+        {/* Sağ-orta */}
+        <Circle
+          key="bend-right"
+          x={el.width + groupEdgeBends.right}
+          y={el.height / 2}
+          radius={8}
+          fill="red"
+          draggable
+          dragBoundFunc={(pos) => {
+            const minX = el.width / 2;
+            const maxX = el.width * 1.5;
+            let x = Math.min(Math.max(pos.x, minX), maxX);
+            return { x, y: el.height / 2 };
+          }}
+          onDragMove={(e) => {
+            const pos = e.target.position();
+            setGroupEdgeBends((prev) => ({ ...prev, right: pos.x - el.width }));
+          }}
+        />
+
+        {/* Alt-orta */}
+        <Circle
+          key="bend-bottom"
+          x={el.width / 2}
+          y={el.height + groupEdgeBends.bottom}
+          radius={8}
+          fill="red"
+          draggable
+          dragBoundFunc={(pos) => {
+            const minY = el.height / 2;
+            const maxY = el.height * 1.5;
+            let y = Math.min(Math.max(pos.y, minY), maxY);
+            return { x: el.width / 2, y };
+          }}
+          onDragMove={(e) => {
+            const pos = e.target.position();
+            setGroupEdgeBends((prev) => ({
+              ...prev,
+              bottom: pos.y - el.height,
+            }));
+          }}
+        />
+
+        {/* Sol-orta */}
+        <Circle
+          key="bend-left"
+          x={groupEdgeBends.left}
+          y={el.height / 2}
+          radius={8}
+          fill="red"
+          draggable
+          dragBoundFunc={(pos) => {
+            const minX = -el.width / 2;
+            const maxX = el.width / 2;
+            let x = Math.min(Math.max(pos.x, minX), maxX);
+            return { x, y: el.height / 2 };
+          }}
+          onDragMove={(e) => {
+            const pos = e.target.position();
+            setGroupEdgeBends((prev) => ({ ...prev, left: pos.x }));
+          }}
+        />
       </Group>
     );
   };
 
   return (
-    <>
-      <Stage
-        width={width}
-        height={height}
-        ref={stageRef}
-        className="bg-white rounded-lg shadow-md"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={handleStageClick}
-      >
-        <Layer>
-          {elements.map((el) => renderElement(el))}
-          <Transformer ref={transformerRef} rotateEnabled resizeEnabled />
-          <Rect
-            ref={selectionRectRef}
-            fill="rgba(0, 161, 255, 0.2)"
-            stroke="blue"
-            strokeWidth={1}
-            visible={selectionVisible}
-          />
-        </Layer>
-      </Stage>
-    </>
+    <Stage
+      width={width}
+      height={height}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onClick={handleStageClick}
+      ref={stageRef}
+      style={{ cursor: selectedTool ? "crosshair" : "default" }}
+    >
+      <Layer>
+        {elements.map((el) =>
+          el.type === "group" ? (
+            renderGroupElement(el)
+          ) : (
+            <Group
+              key={el.id}
+              x={el.x}
+              y={el.y}
+              draggable
+              onDragEnd={(e) => {
+                const node = e.target;
+                const newX = node.x();
+                const newY = node.y();
+
+                // Grubun yeni pozisyonunu kaydet
+                setElements((prev) =>
+                  prev.map((item) =>
+                    item.id === el.id ? { ...item, x: newX, y: newY } : item
+                  )
+                );
+              }}
+            >
+              {el.type === "seat" ? (
+                <>
+                  <Circle
+                    x={el.width / 2}
+                    y={el.height / 2}
+                    radius={el.width / 2}
+                    fill={el.fill}
+                    stroke={selectedIds.includes(el.id) ? "blue" : undefined}
+                    strokeWidth={selectedIds.includes(el.id) ? 2 : 0}
+                  />
+                  {el.text && (
+                    <Text
+                      text={el.text}
+                      fontSize={el.fontSize || 12}
+                      fill="black"
+                      align="center"
+                      verticalAlign="middle"
+                      width={el.width}
+                      height={el.height}
+                      offsetX={el.width / 2}
+                      offsetY={el.height / 2}
+                      x={el.width / 2}
+                      y={el.height / 2}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <Rect
+                    width={el.width}
+                    height={el.height}
+                    fill={el.fill}
+                    stroke={selectedIds.includes(el.id) ? "blue" : undefined}
+                    strokeWidth={selectedIds.includes(el.id) ? 2 : 0}
+                  />
+                  {el.text && (
+                    <Text
+                      text={el.text}
+                      fontSize={el.fontSize || 16}
+                      fill="black"
+                      width={el.width}
+                      height={el.height}
+                      align="center"
+                      verticalAlign="middle"
+                    />
+                  )}
+                </>
+              )}
+            </Group>
+          )
+        )}
+
+        {/* Seçim kutusu */}
+        <Rect
+          ref={selectionRectRef}
+          fill="rgba(0, 161, 255, 0.3)"
+          visible={false}
+        />
+
+        <Transformer
+          ref={transformerRef}
+          rotateEnabled
+          enabledAnchors={[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "middle-left",
+            "middle-right",
+            "top-center",
+            "bottom-center",
+          ]}
+          boundBoxFunc={(oldBox, newBox) => {
+            // Min width/height sınırı
+            if (newBox.width < 5 || newBox.height < 5) {
+              return oldBox;
+            }
+            return newBox;
+          }}
+        />
+      </Layer>
+    </Stage>
   );
 };
