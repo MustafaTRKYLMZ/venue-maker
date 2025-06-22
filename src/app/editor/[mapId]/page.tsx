@@ -22,7 +22,7 @@ import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 // Dynamically import MapEditorCanvas
 const DynamicMapEditorCanvas = dynamic(
   () =>
-    import("@/src/components/MapEditorCanvas").then(
+    import("@/src/components/MapEditor/MapEditorCanvas").then(
       (mod) => mod.MapEditorCanvas
     ),
   {
