@@ -15,6 +15,7 @@ type GroupElementProps = {
   el: MapElement;
   isSelected?: boolean;
   setGroupEdgeBends: React.Dispatch<React.SetStateAction<GroupEdgeBends>>;
+  elementRefs?: React.MutableRefObject<Record<string, any>>;
 };
 
 export const GroupElement: React.FC<GroupElementProps> = ({
@@ -26,6 +27,7 @@ export const GroupElement: React.FC<GroupElementProps> = ({
   groupEdgeBends,
   el,
   isSelected,
+  elementRefs,
 }) => {
   return (
     <Group
@@ -33,6 +35,17 @@ export const GroupElement: React.FC<GroupElementProps> = ({
       x={el.x}
       y={el.y}
       draggable
+      ref={(node) => {
+        if (node) {
+          if (elementRefs?.current) {
+            elementRefs.current[el.id] = node;
+          }
+        } else {
+          if (elementRefs?.current) {
+            delete elementRefs.current[el.id];
+          }
+        }
+      }}
       onClick={(e) => {
         e.cancelBubble = true;
         handleElementClick(e, el);
@@ -42,6 +55,20 @@ export const GroupElement: React.FC<GroupElementProps> = ({
         handleElementClick(e, el);
       }}
     >
+      <Rect
+        width={el.width}
+        height={el.height}
+        fill="transparent"
+        listening={true}
+        onClick={(e) => {
+          e.cancelBubble = true;
+          handleElementClick(e, el);
+        }}
+        onTap={(e) => {
+          e.cancelBubble = true;
+          handleElementClick(e, el);
+        }}
+      />
       <Shape
         listening={true}
         onClick={(e) => {
@@ -86,9 +113,17 @@ export const GroupElement: React.FC<GroupElementProps> = ({
 
         return (
           <Group
-            key={child.id} // 🛠️ Bu satır önemli!
+            key={child.id}
             x={pos.x}
             y={pos.y}
+            ref={(node) => {
+              if (node) {
+                if (elementRefs?.current) {
+                  elementRefs.current[child.id] = node;
+                }
+              } else
+                elementRefs?.current && delete elementRefs.current[child.id];
+            }}
             onClick={(e) => {
               e.cancelBubble = true;
               handleElementClick(e, child);

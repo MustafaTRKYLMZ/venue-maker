@@ -73,20 +73,39 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     bottom: 0,
     left: 0,
   });
-
+  const isGroupId = (id: string) => {
+    const el = elements.find((el) => el.id === id);
+    return el?.type === "group";
+  };
   useEffect(() => {
     const transformer = transformerRef.current;
-
     if (!transformer) return;
+
     requestAnimationFrame(() => {
+      if (selectedIds.length === 0) {
+        transformer.nodes([]);
+        transformer.getLayer()?.batchDraw();
+        return;
+      }
+
+      const groupId = selectedIds.find((id) => isGroupId(id));
+      if (groupId) {
+        const groupNode = elementRefs.current[groupId];
+        if (groupNode) {
+          transformer.nodes([groupNode]);
+          transformer.getLayer()?.batchDraw();
+          return;
+        }
+      }
+
       const selectedNodes = selectedIds
         .map((id) => elementRefs.current[id])
-        .filter(Boolean) as Konva.Node[];
+        .filter(Boolean);
 
       transformer.nodes(selectedNodes);
       transformer.getLayer()?.batchDraw();
     });
-  }, [selectedIds]);
+  }, [selectedIds, elements]);
 
   const isInside = (a: any, b: any) =>
     a.x1 >= b.x1 && a.y1 >= b.y1 && a.x2 <= b.x2 && a.y2 <= b.y2;
@@ -231,6 +250,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     return (
       <GroupElement
         key={el.id}
+        elementRefs={elementRefs}
         handleElementClick={handleElementClick}
         setElements={setElements}
         handleTransformEnd={handleTransformEnd}
