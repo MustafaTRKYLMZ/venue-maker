@@ -16,12 +16,12 @@ export interface MapElement {
   stroke?: string;
   strokeWidth?: number;
 
-  children?: MapElement[]; 
-  edgeCurvatures?: [number, number, number, number]; 
-  cornerRadii?: [number, number, number, number]; 
+  children?: MapElement[];
+  edgeCurvatures?: [number, number, number, number];
+  cornerRadii?: [number, number, number, number];
 
-  initialWidth?: number; 
-  initialHeight?: number; 
+  initialWidth?: number;
+  initialHeight?: number;
   initialX?: number;
   initialY?: number;
 }

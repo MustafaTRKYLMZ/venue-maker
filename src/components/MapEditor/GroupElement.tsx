@@ -1,4 +1,3 @@
-// GroupElement.tsx
 import React from "react";
 import { Group, Rect, Text, Circle, Shape } from "react-konva";
 import { MapElement } from "@/src/types/mapElement";
@@ -29,12 +28,34 @@ export const GroupElement: React.FC<GroupElementProps> = ({
   isSelected,
 }) => {
   return (
-    <Group key={el.id} x={el.x} y={el.y} draggable>
+    <Group
+      key={el.id}
+      x={el.x}
+      y={el.y}
+      draggable
+      onClick={(e) => {
+        e.cancelBubble = true;
+        handleElementClick(e, el);
+      }}
+      onTap={(e) => {
+        e.cancelBubble = true;
+        handleElementClick(e, el);
+      }}
+    >
       <Shape
+        listening={true}
+        onClick={(e) => {
+          e.cancelBubble = true;
+          handleElementClick(e, el);
+        }}
+        onTap={(e) => {
+          e.cancelBubble = true;
+          handleElementClick(e, el);
+        }}
         sceneFunc={(ctx) => {
           const w = el.width;
           const h = el.height;
-          const b = groupEdgeBends;
+          const b = groupEdgeBends ?? { top: 0, right: 0, bottom: 0, left: 0 };
 
           ctx.beginPath();
 
@@ -55,20 +76,27 @@ export const GroupElement: React.FC<GroupElementProps> = ({
         }}
       />
 
-      {/* Çocukları çiziyoruz, pozisyonları yay deformasyonuna göre ayarlanıyor */}
       {el.children?.map((child) => {
         const pos = applyEdgeBendsToChild(
           child,
           el,
-          groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 }
+          groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 },
         );
         const isChildSelected = selectedIds.includes(child.id);
 
         return (
           <Group
+            key={child.id} // 🛠️ Bu satır önemli!
             x={pos.x}
             y={pos.y}
-            onClick={(e) => handleElementClick(e, child)}
+            onClick={(e) => {
+              e.cancelBubble = true;
+              handleElementClick(e, child);
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
+              handleElementClick(e, child);
+            }}
             onDragEnd={(e) => {
               const node = e.target;
               const updated = {
@@ -77,12 +105,11 @@ export const GroupElement: React.FC<GroupElementProps> = ({
                 y: node.y(),
               };
               setElements((prev) =>
-                prev.map((item) => (item.id === child.id ? updated : item))
+                prev.map((item) => (item.id === child.id ? updated : item)),
               );
             }}
             onTransformEnd={(e) => handleTransformEnd(e, child)}
           >
-            {/* Örnek: seat tipi ise circle ile çiz */}
             {child.type === "seat" ? (
               <Seat el={child} selectedIds={selectedIds} />
             ) : (
@@ -110,6 +137,7 @@ export const GroupElement: React.FC<GroupElementProps> = ({
           </Group>
         );
       })}
+
       <EdgeBendControls
         el={el}
         groupEdgeBends={
