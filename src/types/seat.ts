@@ -1,37 +1,19 @@
+import { Position } from "./position";
+
+export type SeatType =
+  | "standard"
+  | "vip"
+  | "accessible"
+  | "companion"
+  | "staff";
+
 export type Seat = {
-  x: number;
-  y: number;
-  rows: number;
-  cols: number;
-  gap?: number;
-  width?: number;
-  height?: number;
-  id?: string;
-  type?: "seat";
-  label?: string;
+  id: string;
+  label: string;
+  type: "seat";
+  seatType: SeatType;
+  price?: number;
+  position: Position;
   color?: string;
-  isSelected?: boolean;
-  isLocked?: boolean;
-  isHidden?: boolean;
-  isDisabled?: boolean;
-  isHighlighted?: boolean;
-  isFocused?: boolean;
-  isHovered?: boolean;
-  isActive?: boolean;
-  isDraggable?: boolean;
-  isResizable?: boolean;
-  isRotatable?: boolean;
-  isEditable?: boolean;
-  isSelectable?: boolean;
-  isMovable?: boolean;
-  isTransformable?: boolean;
-  isClonable?: boolean;
-  isDeletable?: boolean;
-  isCopyable?: boolean;
-  isPasteable?: boolean;
-  isExportable?: boolean;
-  isImportable?: boolean;
-  isPrintable?: boolean;
-  isShareable?: boolean;
-  isCollaborative?: boolean;
+  isAccessible?: boolean;
 };

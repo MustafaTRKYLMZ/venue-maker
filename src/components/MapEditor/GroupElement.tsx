@@ -4,7 +4,7 @@ import { MapElement } from "@/src/types/mapElement";
 import { Seat } from "./Seat";
 import { EdgeBendControls } from "./EdgeBendControls";
 import { GroupEdgeBends } from "@/src/types/groupEdgeBends";
-import { applyEdgeBendsToChild } from "@/src/utils/helpers";
+import { applyEdgeBendsToChild, drawBentGroupShape } from "@/src/utils/helpers";
 
 type GroupElementProps = {
   setElements: React.Dispatch<React.SetStateAction<MapElement[]>>;
@@ -29,6 +29,14 @@ export const GroupElement: React.FC<GroupElementProps> = ({
   isSelected,
   elementRefs,
 }) => {
+  const offsetX = Math.max(0, -(groupEdgeBends?.left ?? 0));
+  const offsetY = Math.max(0, -(groupEdgeBends?.top ?? 0));
+  const extendRight = Math.max(0, groupEdgeBends?.right || 0);
+  const extendBottom = Math.max(0, groupEdgeBends?.bottom || 0);
+
+  const totalWidth = el.width + offsetX + extendRight;
+  const totalHeight = el.height + offsetY + extendBottom;
+
   return (
     <Group
       key={el.id}
@@ -70,6 +78,8 @@ export const GroupElement: React.FC<GroupElementProps> = ({
         }}
       />
       <Shape
+        width={totalWidth}
+        height={totalHeight}
         listening={true}
         onClick={(e) => {
           e.cancelBubble = true;
@@ -80,26 +90,12 @@ export const GroupElement: React.FC<GroupElementProps> = ({
           handleElementClick(e, el);
         }}
         sceneFunc={(ctx) => {
-          const w = el.width;
-          const h = el.height;
-          const b = groupEdgeBends ?? { top: 0, right: 0, bottom: 0, left: 0 };
-
-          ctx.beginPath();
-
-          ctx.moveTo(0, 0);
-          ctx.quadraticCurveTo(w / 2, b.top, w, 0);
-          ctx.quadraticCurveTo(w + b.right, h / 2, w, h);
-          ctx.quadraticCurveTo(w / 2, h + b.bottom, 0, h);
-          ctx.quadraticCurveTo(b.left, h / 2, 0, 0);
-
-          ctx.closePath();
-
-          ctx.fillStyle = el.fill || "transparent";
-          ctx.fill();
-
-          ctx.strokeStyle = isSelected ? "blue" : "gray";
-          ctx.lineWidth = isSelected ? 2 : 1;
-          ctx.stroke();
+          drawBentGroupShape({
+            ctx: ctx as unknown as CanvasRenderingContext2D,
+            isSelected,
+            el,
+            b: groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 },
+          });
         }}
       />
 
@@ -109,13 +105,15 @@ export const GroupElement: React.FC<GroupElementProps> = ({
           el,
           groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 },
         );
+        const childX = pos.x + offsetX;
+        const childY = pos.y + offsetY;
         const isChildSelected = selectedIds.includes(child.id);
 
         return (
           <Group
             key={child.id}
-            x={pos.x}
-            y={pos.y}
+            x={childX}
+            y={childY}
             ref={(node) => {
               if (node) {
                 if (elementRefs?.current) {
@@ -172,14 +170,15 @@ export const GroupElement: React.FC<GroupElementProps> = ({
           </Group>
         );
       })}
-
-      <EdgeBendControls
-        el={el}
-        groupEdgeBends={
-          groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 }
-        }
-        setGroupEdgeBends={setGroupEdgeBends}
-      />
+      {isSelected && (
+        <EdgeBendControls
+          el={el}
+          groupEdgeBends={
+            groupEdgeBends || { top: 0, right: 0, bottom: 0, left: 0 }
+          }
+          setGroupEdgeBends={setGroupEdgeBends}
+        />
+      )}
     </Group>
   );
 };
