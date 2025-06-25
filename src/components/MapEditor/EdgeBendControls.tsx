@@ -21,87 +21,90 @@ export const EdgeBendControls: FC<EdgeBendControlsProps> = ({
   groupEdgeBends,
   setGroupEdgeBends,
 }) => {
+  const { width, height } = el;
   return (
     <>
+      {/* Top */}
       <Circle
         key="bend-top"
-        x={el.width / 2}
+        x={width / 2}
         y={groupEdgeBends.top}
         radius={8}
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minY = -el.height / 2;
-          const maxY = el.height / 2;
-          let y = Math.min(Math.max(pos.y, minY), maxY);
-          return { x: el.width / 2, y };
+          const minY = -height;
+          const maxY = height;
+          const y = Math.min(Math.max(pos.y, minY), maxY);
+          return { x: width / 2, y };
         }}
         onDragMove={(e) => {
-          const pos = e.target.position();
-          setGroupEdgeBends((prev) => ({ ...prev, top: pos.y }));
+          const y = e.target.y();
+          setGroupEdgeBends((prev) => ({ ...prev, top: y }));
+          e.target.x(el.width / 2);
         }}
       />
 
-      {/* right-center */}
+      {/* Right */}
       <Circle
         key="bend-right"
-        x={el.width + groupEdgeBends.right}
-        y={el.height / 2}
+        x={width + groupEdgeBends.right}
+        y={height / 2}
         radius={8}
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minX = el.width / 2;
-          const maxX = el.width * 1.5;
-          let x = Math.min(Math.max(pos.x, minX), maxX);
-          return { x, y: el.height / 2 };
+          const minX = width - width;
+          const maxX = width + width;
+          const x = Math.min(Math.max(pos.x, minX), maxX);
+          return { x, y: height / 2 };
         }}
         onDragMove={(e) => {
-          const pos = e.target.position();
-          setGroupEdgeBends((prev) => ({ ...prev, right: pos.x - el.width }));
+          const x = e.target.x();
+          setGroupEdgeBends((prev) => ({ ...prev, right: x - el.width }));
+          e.target.y(el.height / 2); // Y sabitleniyor
         }}
       />
 
-      {/* bottom-center */}
+      {/* Bottom */}
       <Circle
         key="bend-bottom"
-        x={el.width / 2}
-        y={el.height + groupEdgeBends.bottom}
+        x={width / 2}
+        y={height + groupEdgeBends.bottom}
         radius={8}
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minY = el.height / 2;
-          const maxY = el.height * 1.5;
-          let y = Math.min(Math.max(pos.y, minY), maxY);
-          return { x: el.width / 2, y };
+          const minY = height - height;
+          const maxY = height + height;
+          const y = Math.min(Math.max(pos.y, minY), maxY);
+          return { x: width / 2, y };
         }}
         onDragMove={(e) => {
-          const pos = e.target.position();
-          setGroupEdgeBends((prev) => ({
-            ...prev,
-            bottom: pos.y - el.height,
-          }));
+          const y = e.target.y();
+          setGroupEdgeBends((prev) => ({ ...prev, bottom: y - height }));
+          e.target.x(width / 2); // X sabit
         }}
       />
 
-      {/* left-center  */}
+      {/* Left */}
       <Circle
         key="bend-left"
         x={groupEdgeBends.left}
-        y={el.height / 2}
+        y={height / 2}
         radius={8}
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minX = -el.width / 2;
-          const maxX = el.width / 2;
-          let x = Math.min(Math.max(pos.x, minX), maxX);
-          return { x, y: el.height / 2 };
+          const minX = -width;
+          const maxX = width;
+          const x = Math.min(Math.max(pos.x, minX), maxX);
+          return { x, y: height / 2 };
         }}
         onDragMove={(e) => {
-          const pos = e.target.position();
-          setGroupEdgeBends((prev) => ({ ...prev, left: pos.x }));
+          const x = e.target.x();
+          setGroupEdgeBends((prev) => ({ ...prev, left: x }));
+          e.target.y(height / 2);
         }}
       />
     </>
