@@ -1,9 +1,10 @@
+import { MapElement } from "./mapElement";
 import { Position } from "./position";
 
-export type Stage = {
+export interface Stage extends MapElement {
   id: string;
   name: string;
   position: Position;
   width: number;
   height: number;
-};
+}

@@ -4,4 +4,12 @@ export type ElementType =
   | "text"
   | "wall"
   | "group"
-  | "multiple_seat";
+  | "multiple_seat"
+  | "door"
+  | "section"
+  | "floor"
+  | "venue"
+  | "light"
+  | "row"
+  | "control_room"
+  | "map_element";

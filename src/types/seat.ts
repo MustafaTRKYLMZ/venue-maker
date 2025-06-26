@@ -1,3 +1,4 @@
+import { MapElement } from "./mapElement";
 import { Position } from "./position";
 
 export type SeatType =
@@ -7,7 +8,7 @@ export type SeatType =
   | "companion"
   | "staff";
 
-export type Seat = {
+export interface Seat extends MapElement {
   id: string;
   label: string;
   type: "seat";
@@ -16,4 +17,4 @@ export type Seat = {
   position: Position;
   color?: string;
   isAccessible?: boolean;
-};
+}

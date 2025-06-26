@@ -1,9 +1,10 @@
 import { Door } from "./door";
 import { Floor } from "./floor";
 import { Light } from "./light";
+import { MapElement } from "./mapElement";
 import { Stage } from "./stage";
 
-export type Venue = {
+export interface Venue extends MapElement {
   id: string;
   name: string;
   floors: Floor[];
@@ -22,4 +23,4 @@ export type Venue = {
     phone?: string;
     website?: string;
   };
-};
+}

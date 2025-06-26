@@ -1,27 +1,29 @@
-// types/mapElement.ts
-import { ElementType } from "./element";
+import { MapElement } from "./mapElement";
 
-export interface MapElement {
+export interface Wall extends MapElement {
   id: string;
-  type: ElementType;
-  x: number;
-  y: number;
+  type: "wall";
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  rotation?: number;
   width: number;
   height: number;
-  fill?: string;
+  color?: string;
   draggable: boolean;
-  text?: string;
-  fontSize?: number;
-  rotation?: number;
+  fill?: string;
   stroke?: string;
   strokeWidth?: number;
-
-  children?: MapElement[];
   edgeCurvatures?: [number, number, number, number];
   cornerRadii?: [number, number, number, number];
-
   initialWidth?: number;
   initialHeight?: number;
   initialX?: number;
   initialY?: number;
+  children?: Wall[];
+  text?: string;
+  fontSize?: number;
+  draggableText?: boolean;
 }

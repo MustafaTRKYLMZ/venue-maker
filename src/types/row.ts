@@ -1,12 +1,12 @@
 import { MapElement } from "./mapElement";
 import { Position } from "./position";
-import { Row } from "./row";
+import { Seat } from "./seat";
 
-export interface Section extends MapElement {
+export interface Row extends MapElement {
   id: string;
-  type: "section";
+  type: "row";
   name: string;
-  rows: Row[];
+  seats: Seat[];
   position: Position;
   rotation?: number;
   color?: string;

@@ -1,10 +1,11 @@
+import { MapElement } from "./mapElement";
 import { Position } from "./position";
 
-export type ControlRoom = {
+export interface ControlRoom extends MapElement {
   id: string;
-  type: "controlRoom";
+  type: "control_room";
   label: string;
   position: Position;
   width: number;
   height: number;
-};
+}
