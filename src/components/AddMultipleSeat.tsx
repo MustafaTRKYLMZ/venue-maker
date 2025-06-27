@@ -2,7 +2,8 @@ import { IconButton } from "./IconButton";
 import { useState } from "react";
 import { AddMultipleSeatDialog } from "./AddMultipleSeatDialog";
 import { FaTh } from "react-icons/fa";
-import { ElementType } from "../types/element";
+import { ElementType, ToolType } from "../types/element";
+import { getToolButtonClass } from "../utils/helpers/getToolButtonClass";
 
 export type AddMultipleSeatProps = {
   rows: number;
@@ -10,6 +11,7 @@ export type AddMultipleSeatProps = {
   setCols: (value: number) => void;
   onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
   cols: number;
+  selectedTool?: ToolType | null;
 };
 export const AddMultipleSeat = ({
   rows,
@@ -17,6 +19,7 @@ export const AddMultipleSeat = ({
   setCols,
   onConfirmAddSeats,
   cols,
+  selectedTool,
 }: AddMultipleSeatProps) => {
   const [isMultipleSeatDialogOpen, setIsMultipleSeatDialogOpen] =
     useState(false);
@@ -37,7 +40,10 @@ export const AddMultipleSeat = ({
           tooltipText="Add Multiple Seats (Grid)"
           onClick={handleOpenMultipleSeatDialog}
           aria-label="Add multiple seats"
-          className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+          className={getToolButtonClass(
+            selectedTool?.type as string,
+            "section",
+          )}
         />
         {isMultipleSeatDialogOpen && (
           <AddMultipleSeatDialog

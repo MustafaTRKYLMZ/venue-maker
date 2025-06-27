@@ -1,16 +1,50 @@
-import { Door } from "./door";
-import { Floor } from "./floor";
-import { Light } from "./light";
-import { MapElement } from "./mapElement";
-import { Stage } from "./stage";
+import { BaseElement } from "./baseElement";
+import { ControlRoom, Door, Light, Stage, Wall } from "./elements";
 
-export interface Venue extends MapElement {
+export type SeatType =
+  | "standard"
+  | "vip"
+  | "accessible"
+  | "companion"
+  | "staff";
+
+export interface Seat extends BaseElement {
+  type: "seat";
+  seatType: SeatType;
+  price?: number;
+  isAccessible?: boolean;
+  isSelected?: boolean;
+  isReserved?: boolean;
+}
+
+export interface Row extends BaseElement {
+  type: "row";
+  seats: Seat[];
+}
+
+export interface Section extends BaseElement {
+  type: "section";
+  rows: Row[];
+}
+
+export type Floor = {
   id: string;
   name: string;
+  type: "floor";
+  index: number;
+  sections: Section[];
+  controlRoom?: ControlRoom;
+  doors: Door[];
+  stage: Stage;
+  walls: Wall[];
+  lights: Light[];
+};
+
+export type Venue = {
+  id: string;
+  type: "venue";
+  name: string;
   floors: Floor[];
-  stage?: Stage;
-  doors?: Door[];
-  lights?: Light[];
   createdAt: string;
   updatedAt: string;
   address?: string;
@@ -23,4 +57,4 @@ export interface Venue extends MapElement {
     phone?: string;
     website?: string;
   };
-}
+};

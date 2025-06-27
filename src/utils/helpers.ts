@@ -1,12 +1,12 @@
-import { MapElement } from "@/src/types/mapElement";
+import { BaseElement } from "@/src/types/baseElement";
 import { GroupEdgeBends } from "../types/groupEdgeBends";
 
-export const applyEdgeBendsToChild = (
-  child: MapElement,
-  el: MapElement,
+export const applyEdgeBendsToChild = <T extends BaseElement>(
+  child: T,
+  el: BaseElement,
   groupEdgeBends: GroupEdgeBends,
-): { x: number; y: number } => {
-  const { x: relX, y: relY } = child;
+): T => {
+  const { x: relX, y: relY } = child.position;
   const { width: w, height: h } = el;
 
   const midX = w / 2;
@@ -24,23 +24,26 @@ export const applyEdgeBendsToChild = (
     0.3;
 
   return {
-    x: relX + dx,
-    y: relY + dy,
+    ...child,
+    position: {
+      ...child.position,
+      x: relX + dx,
+      y: relY + dy,
+    },
   };
 };
 
-export const getElementBounds = (el: MapElement) => ({
-  x1: el.x,
-  y1: el.y,
-  x2: el.x + el.width,
-  y2: el.y + el.height,
+export const getElementBounds = (el: BaseElement) => ({
+  x1: el.position.x,
+  y1: el.position.y,
+  x2: el.position.x + el.width,
+  y2: el.position.y + el.height,
 });
 
 export type drawBentGroupShapeProps = {
   ctx: CanvasRenderingContext2D;
-
   isSelected?: boolean;
-  el: MapElement;
+  el: BaseElement;
   b: GroupEdgeBends;
 };
 export const drawBentGroupShape = ({

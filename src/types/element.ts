@@ -11,5 +11,17 @@ export type ElementType =
   | "venue"
   | "light"
   | "row"
-  | "control_room"
+  | "controlRoom"
   | "map_element";
+
+export type ToolType =
+  | { type: "floor" }
+  | { type: "section"; rows: number; cols: number }
+  | { type: "row" }
+  | { type: "seat" }
+  | { type: "stage" }
+  | { type: "light" }
+  | { type: "door" }
+  | { type: "wall" }
+  | { type: "controlRoom" }
+  | null;

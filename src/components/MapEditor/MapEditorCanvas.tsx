@@ -3,49 +3,45 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Stage, Layer, Group } from "react-konva";
 import Konva from "konva";
-import { MapElement } from "@/src/types/mapElement";
 import { ElementType } from "@/src/types/element";
 import { KonvaEventObject } from "konva/lib/Node";
-import { Seat } from "./Seat";
-import { GroupElement } from "./GroupElement";
-import { getElementBounds } from "@/src/utils/helpers";
-import { GroupEdgeBends } from "@/src/types/groupEdgeBends";
 import { BasicElement } from "./BasicElement";
 import { SelectionRect } from "./SelectionRect";
 import { CustomTransformer } from "./CustomTransformer";
+import { GroupEdgeBends } from "@/src/types/groupEdgeBends";
+import {
+  Floor as FloorType,
+  Section as SectionType,
+  Venue,
+} from "@/src/types/venue";
+import { Door, Light, VenueElement } from "@/src/types/elements";
+import { ToolType } from "@/src/app/editor/[mapId]/page";
+import { Floor } from "./Floor";
 
 type MapEditorCanvasProps = {
   width: number;
   height: number;
-  elements: MapElement[];
-  setElements: React.Dispatch<React.SetStateAction<MapElement[]>>;
+  venue: Venue;
+  setElements: React.Dispatch<React.SetStateAction<Venue[]>>;
   selectedIds: string[];
-  onSelectElements: (elements: MapElement[]) => void;
-  selectedTool: ElementType | null;
+  onSelectElements: (venue: Venue[]) => void;
+  selectedTool: ToolType | null;
   addElementAtPosition: (
-    type: ElementType,
+    type: string,
     position: { x: number; y: number },
   ) => void;
-  setSelectedTool: (tool: string | null) => void;
+  setSelectedTool: (tool: ToolType | null) => void;
   addSeatsGrid: (
     position: { x: number; y: number },
     rows: number,
     cols: number,
-    seatWidth: number,
-    seatHeight: number,
-    gap?: number,
   ) => void;
-
-  multipleSeatsGridFields?: {
-    rows: number;
-    cols: number;
-  };
 };
 
 export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   width,
   height,
-  elements,
+  venue,
   setElements,
   selectedIds,
   onSelectElements,
@@ -53,7 +49,6 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   addElementAtPosition,
   setSelectedTool,
   addSeatsGrid,
-  multipleSeatsGridFields = { rows: 0, cols: 0 },
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -63,20 +58,22 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     y: number;
   } | null>(null);
   const [selectionVisible, setSelectionVisible] = useState(false);
-
   const elementRefs = useRef<Record<string, Konva.Node>>({});
-
-  // Yeni: Grup yay deformasyonları (top, right, bottom, left)
   const [groupEdgeBends, setGroupEdgeBends] = useState<GroupEdgeBends>({
     top: 0,
     right: 0,
     bottom: 0,
     left: 0,
   });
+
   const isGroupId = (id: string) => {
-    const el = elements.find((el) => el.id === id);
-    return el?.type === "group";
+    const el = venue.floors?.find((el) => el.id === id);
+    return (
+      el?.type === "floor" &&
+      el.sections?.some((section) => section.type === "section")
+    );
   };
+
   useEffect(() => {
     const transformer = transformerRef.current;
     if (!transformer) return;
@@ -105,10 +102,21 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
       transformer.nodes(selectedNodes);
       transformer.getLayer()?.batchDraw();
     });
-  }, [selectedIds, elements]);
+  }, [selectedIds, venue]);
 
   const isInside = (a: any, b: any) =>
     a.x1 >= b.x1 && a.y1 >= b.y1 && a.x2 <= b.x2 && a.y2 <= b.y2;
+
+  const getElementBounds = (el: {
+    position: { x: number; y: number };
+    width?: number;
+    height?: number;
+  }) => ({
+    x1: el.position.x,
+    y1: el.position.y,
+    x2: el.position.x + (el.width ?? 0),
+    y2: el.position.y + (el.height ?? 0),
+  });
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target !== e.target.getStage()) return;
@@ -152,7 +160,7 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     const box = selectionRectRef.current?.getClientRect();
     if (!box) return;
 
-    const selected = elements.filter((el) =>
+    const selected = venue?.floors.filter((el) =>
       isInside(getElementBounds(el), {
         x1: box.x,
         y1: box.y,
@@ -167,27 +175,58 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
     selectionRectRef.current?.setAttrs({ visible: false });
   };
 
-  const handleElementClick = (e: any, el: MapElement) => {
+  const findElementById = (id: string, venue: Venue): VenueElement | null => {
+    if (venue.id === id) return venue;
+
+    for (const floor of venue.floors || []) {
+      if (floor.id === id) return floor;
+
+      for (const section of floor.sections || []) {
+        if (section.id === id) return section;
+
+        for (const row of section.rows || []) {
+          if (row.id === id) return row;
+
+          for (const seat of row.seats || []) {
+            if (seat.id === id) return seat;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const handleElementClick = (
+    e: Konva.KonvaEventObject<MouseEvent>,
+    elId: string,
+  ) => {
     e.cancelBubble = true;
-    const isSelected = selectedIds.includes(el.id);
+    const isSelected = selectedIds.includes(elId);
 
     if (e.evt.shiftKey) {
       const newSelection = isSelected
         ? selectedIds
-            .filter((id) => id !== el.id)
-            .map((id) => elements.find((e) => e.id === id)!)
-        : [...selectedIds.map((id) => elements.find((e) => e.id === id)!), el];
+            .filter((id) => id !== elId)
+            .map((id) => findElementById(id, venue))
+            .filter((el): el is Venue => Boolean(el))
+        : [
+            ...selectedIds
+              .map((id) => findElementById(id, venue))
+              .filter((el): el is Venue => Boolean(el)),
+            ...(findElementById(elId, venue)
+              ? [findElementById(elId, venue)!]
+              : []),
+          ];
 
-      onSelectElements(newSelection.filter(Boolean));
+      onSelectElements(newSelection as Venue[]);
     } else {
-      onSelectElements([el]);
+      const el = findElementById(elId, venue);
+      if (el) onSelectElements([el as Venue]);
     }
   };
 
-  const handleTransformEnd = (
-    e: Konva.KonvaEventObject<Event>,
-    el: MapElement,
-  ) => {
+  const handleTransformEnd = (e: any, el: Venue) => {
     const node = e.target;
     const scaleX = node.scaleX();
     const scaleY = node.scaleY();
@@ -197,8 +236,8 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
       x: node.x(),
       y: node.y(),
       rotation: node.rotation(),
-      width: el.width * scaleX,
-      height: el.height * scaleY,
+      width: (el.width ?? 0) * scaleX,
+      height: (el.height ?? 0) * scaleY,
     };
 
     node.scaleX(1);
@@ -210,57 +249,75 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
   };
 
   const handleStageClick = (e: KonvaEventObject<MouseEvent>) => {
-    if (e.target !== e.target.getStage()) {
-      return;
-    }
-    const stage = e.target.getStage();
-    if (!stage) return;
+    if (e.target !== e.target.getStage()) return;
 
-    const pointerPos = stage.getPointerPosition();
+    const pointerPos = e.target.getStage()?.getPointerPosition();
+    console.log("Pointer Position:", pointerPos);
     if (!pointerPos) return;
 
-    const container = stage.container();
-
-    if (selectedTool === "multiple_seat") {
-      if (
-        multipleSeatsGridFields.rows > 0 &&
-        multipleSeatsGridFields.cols > 0
-      ) {
-        addSeatsGrid(
-          pointerPos,
-          multipleSeatsGridFields.rows,
-          multipleSeatsGridFields.cols,
-          40,
-          40,
-        );
+    if (selectedTool?.type === "section") {
+      if (selectedTool.rows > 0 && selectedTool.cols > 0) {
+        {
+          addSeatsGrid(pointerPos, selectedTool.rows, selectedTool.cols);
+        }
       }
       setSelectedTool(null);
     } else if (selectedTool) {
-      addElementAtPosition(selectedTool, pointerPos);
+      addElementAtPosition(selectedTool.type, pointerPos);
       setSelectedTool(null);
-      if (container) container.style.cursor = "default";
     } else {
       onSelectElements([]);
     }
   };
 
-  const renderGroupElement = (el: MapElement) => {
-    const isSelected = selectedIds.includes(el.id);
+  const updateNestedElement = (
+    id: string,
+    updater: (el: Venue) => Venue,
+    elementsArr: Venue[],
+  ): Venue[] => {
+    return elementsArr.map((el) => {
+      if (el.id === id) return updater(el);
 
-    return (
-      <GroupElement
-        key={el.id}
-        elementRefs={elementRefs}
-        handleElementClick={handleElementClick}
-        setElements={setElements}
-        handleTransformEnd={handleTransformEnd}
-        setGroupEdgeBends={setGroupEdgeBends}
-        selectedIds={selectedIds}
-        groupEdgeBends={groupEdgeBends}
-        el={el}
-        isSelected={isSelected}
-      />
-    );
+      if ("floors" in el && el.floors) {
+        return {
+          ...el,
+          floors: el.floors.map((floor) => {
+            if (floor.id === id) return updater(floor);
+
+            if ("sections" in floor && floor.sections) {
+              return {
+                ...floor,
+                sections: floor.sections.map((section) => {
+                  if (section.id === id) return updater(section);
+
+                  if ("rows" in section && section.rows) {
+                    return {
+                      ...section,
+                      rows: section.rows.map((row) => {
+                        if (row.id === id) return updater(row);
+                        if ("seats" in row && row.seats) {
+                          return {
+                            ...row,
+                            seats: row.seats.map((seat) =>
+                              seat.id === id ? updater(seat) : seat,
+                            ),
+                          };
+                        }
+                        return row;
+                      }),
+                    };
+                  }
+                  return section;
+                }),
+              };
+            }
+            return floor;
+          }),
+        };
+      }
+
+      return el;
+    });
   };
 
   return (
@@ -272,47 +329,25 @@ export const MapEditorCanvas: React.FC<MapEditorCanvasProps> = ({
       onMouseUp={handleMouseUp}
       onClick={handleStageClick}
       ref={stageRef}
-      style={{ cursor: selectedTool ? "crosshair" : "default" }}
+      style={{ cursor: selectedTool?.type ? "crosshair" : "default" }}
     >
       <Layer>
-        {elements.map((el) =>
-          el.type === "group" ? (
-            renderGroupElement(el)
-          ) : (
-            <Group
-              key={el.id}
-              x={el.x}
-              y={el.y}
-              draggable
-              ref={(node) => {
-                if (node) {
-                  elementRefs.current[el.id] = node;
-                }
-              }}
-              onClick={(e) => handleElementClick(e, el)}
-              onDragEnd={(e) => {
-                const node = e.target;
-                const newX = node.x();
-                const newY = node.y();
+        {venue.floors?.map((floor: FloorType) => (
+          <Floor
+            key={floor.id}
+            el={floor}
+            selectedIds={selectedIds}
+            elementRefs={elementRefs}
+            handleElementClick={handleElementClick}
+            setElements={setElements}
+            // handleTransformEnd={handleTransformEnd}
+            groupEdgeBends={groupEdgeBends}
+            setGroupEdgeBends={setGroupEdgeBends}
+            onSelectElements={onSelectElements}
+          />
+        ))}
 
-                setElements((prev) =>
-                  prev.map((item) =>
-                    item.id === el.id ? { ...item, x: newX, y: newY } : item,
-                  ),
-                );
-              }}
-            >
-              {el.type === "seat" ? (
-                <Seat el={el} selectedIds={selectedIds} />
-              ) : (
-                <BasicElement el={el} selectedIds={selectedIds} />
-              )}
-            </Group>
-          ),
-        )}
-
-        {/* selection box */}
-        <SelectionRect ref={selectionRectRef} visible={false} />
+        <SelectionRect ref={selectionRectRef} visible={selectionVisible} />
         <CustomTransformer transformerRef={transformerRef} />
       </Layer>
     </Stage>

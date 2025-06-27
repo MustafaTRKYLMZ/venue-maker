@@ -1,37 +1,50 @@
+"use client";
+
 import React, { FC } from "react";
-import { ElementType } from "../types/element";
+import { Venue } from "@/src/types/venue";
+import { ElementType, ToolType } from "@/src/types/element";
 import { Tools } from "./Tools";
 import { AddMultipleSeat } from "./AddMultipleSeat";
 
-export type LeftPanelToolsTypes = {
-  handleAddButtonClick: (type: ElementType) => void;
-  rows: number;
-  setRows: (value: number) => void;
-  cols: number;
-  setCols: (value: number) => void;
-  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
+type LeftPanelToolsProps = {
+  selectedTool: ToolType | null;
+  setSelectedTool: (tool: ToolType | null) => void;
 };
 
-export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
-  handleAddButtonClick,
-  rows,
-  setRows,
-  cols,
-  setCols,
-  onConfirmAddSeats,
+export const LeftPanelTools: FC<LeftPanelToolsProps> = ({
+  selectedTool,
+  setSelectedTool,
 }) => {
+  const [rows, setRows] = React.useState<number>(5);
+  const [cols, setCols] = React.useState<number>(10);
+
+  const handleToolClick = (type: ElementType) => {
+    const tool =
+      type === "section" ? { type, rows: 0, cols: 0 } : ({ type } as ToolType);
+    setSelectedTool(tool);
+  };
+
+  const handleConfirmAddSeats = () => {
+    setSelectedTool({ type: "section", rows, cols });
+  };
+
   return (
-    <aside className="w-20 bg-white shahow p-4 border-r border-t border-gray-200 flex-shrink-0">
-      <h2 className="text-xl text-gray-800 font-semibold mb-4">Tools</h2>
-      <Tools handleAddButtonClick={handleAddButtonClick} />
-      <AddMultipleSeat
-        rows={rows}
-        setRows={setRows}
-        cols={cols}
-        setCols={setCols}
-        // addSeatsGrid={addSeatsGrid}
-        onConfirmAddSeats={onConfirmAddSeats}
+    <aside className=" h-full bg-white shadow p-4 border-r border-gray-200 flex-shrink-0">
+      <h2 className="text-lg text-gray-800 font-semibold mb-4">Tools</h2>
+      <Tools
+        handleAddButtonClick={handleToolClick}
+        selectedTool={selectedTool}
       />
+      <div className="mt-6">
+        <AddMultipleSeat
+          rows={rows}
+          setRows={setRows}
+          cols={cols}
+          setCols={setCols}
+          selectedTool={selectedTool}
+          onConfirmAddSeats={handleConfirmAddSeats}
+        />
+      </div>
     </aside>
   );
 };

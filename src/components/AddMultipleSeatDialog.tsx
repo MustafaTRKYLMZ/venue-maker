@@ -21,7 +21,7 @@ export const AddMultipleSeatDialog = ({
   positionClasses = "top-0 right-0",
 }: AddMultipleSeatDialogProps) => {
   const handleAddGrid = () => {
-    const type = "multiple_seat";
+    const type = "section";
     onConfirmAddSeats(type, rows, cols);
     onClose();
   };
