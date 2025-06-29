@@ -24,4 +24,5 @@ export type ToolType =
   | { type: "door" }
   | { type: "wall" }
   | { type: "controlRoom" }
+  | {type :"text"}
   | null;

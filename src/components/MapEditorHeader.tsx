@@ -1,6 +1,6 @@
 import React from "react";
 import { FaUndo, FaRedo, FaSave } from "react-icons/fa";
-import { IconButton } from "./IconButton";
+import { IconButton } from "./ui/IconButton";
 
 export type MapEditorHeaderProps = {
   venueName: string;
