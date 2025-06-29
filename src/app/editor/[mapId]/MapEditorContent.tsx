@@ -79,6 +79,8 @@ export function MapEditorContent() {
               onAddFloor={addFloor}
               selectedTool={selectedTool}
               setSelectedTool={setSelectedTool}
+              rows={rows}
+              cols={cols}
             />
           </CanvasEditorProvider>
         </main>

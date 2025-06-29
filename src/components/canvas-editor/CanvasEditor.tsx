@@ -6,11 +6,12 @@ import { Layer, Rect, Stage } from "react-konva";
 import { ToolType } from "@/src/types/element";
 import { CanvasControls } from "../CanvasControls/CanvasControls";
 import { useWindowSize } from "@/src/hooks/useWindowSize";
-import { renderGrid } from "@/src/utils/renderGrid";
+import { renderGrid } from "@/src/utils/helpers/renderGrid";
 import { useCanvasEditor } from "./CanvasEditorContext";
 import { useMapEditor } from "@/src/context/MapEditorContext";
 import Konva from "konva";
 import { useAddElement } from "@/src/hooks/useAddElement";
+import { CanvasElementsRenderer } from "../CanvasElementRenderer";
 
 export type CanvasEditorProps = {
   venue: Venue;
@@ -20,6 +21,8 @@ export type CanvasEditorProps = {
   onAddFloor: (id: string) => void;
   selectedTool: ToolType | null;
   setSelectedTool: (tool: ToolType | null) => void;
+  rows: number;
+  cols: number;
 };
 
 export const CanvasEditor: FC<CanvasEditorProps> = ({
@@ -27,6 +30,8 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
   onAddFloor,
   selectedTool,
   setSelectedTool,
+  rows,
+  cols,
 }) => {
   const stageRef = useRef<any>(null);
   const { rotation, setRotation, zoom, isDragging, setIsDragging } =
@@ -62,8 +67,14 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
         const pointerPosition = stage.getPointerPosition();
 
         if (!pointerPosition) return;
-
-        addElement(selectedTool, pointerPosition);
+        if (selectedTool.type === "section") {
+          addElement(selectedTool, pointerPosition, {
+            rowCount: rows,
+            colCount: cols,
+          });
+        } else {
+          addElement(selectedTool, pointerPosition);
+        }
 
         setSelectedTool(null);
       }
@@ -86,6 +97,9 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
         onClick={onCanvasClick}
       >
         <Layer>{renderGrid(width, height)}</Layer>
+        <Layer>
+          <CanvasElementsRenderer />
+        </Layer>
 
         <Layer>
           <Rect

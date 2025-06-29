@@ -8,18 +8,10 @@ export const useAddElement = (
   venue: Venue,
   setVenue: (venue: Venue) => void,
   floorId: string,
-  options?: { rowCount?: number; colCount?: number },
+  
 ) => {
-  return (toolType: ToolType, position: Position) => {
-    console.log(
-      "Adding element:",
-      toolType,
-      "at position:",
-      "x",
-      position.x,
-      ";y",
-      position.y,
-    );
+  return (toolType: ToolType, position: Position , options?: { rowCount?: number; colCount?: number } ) => {
+ 
     const updatedFloors = venue.floors.map((floor) => {
       if (floor.id !== floorId) return floor;
 
@@ -128,61 +120,71 @@ export const useAddElement = (
               },
             ],
           };
-        case "section":
-          const rowCount = options?.rowCount ?? 1;
-          const colCount = options?.colCount ?? 1;
-
-          const seatWidth = 20;
-          const seatGap = 8;
-          const rowHeight = 30;
-          const rowGap = 10;
-          const paddingX = 20;
-          const paddingY = 20;
-
-          const sectionWidth =
-            colCount * seatWidth + (colCount - 1) * seatGap + paddingX;
-          const sectionHeight =
-            rowCount * rowHeight + (rowCount - 1) * rowGap + paddingY;
-
-          const rows = createRowsWithSeats(
-            rowCount,
-            colCount,
-            position.x,
-            position.y + 40,
-          ).map((row) => ({
-            ...row,
-            label: "Row",
-            width: sectionWidth,
-            height: rowHeight,
-            fill: "#ddd",
-            draggable: true,
-            fontSize: 12,
-            seats: row.seats.map((seat) => ({
-              ...seat,
-              seatType: "standard" as const,
-              width: seatWidth,
-            })),
-          }));
-
-          return {
-            ...floor,
-            sections: [
-              ...(floor.sections || []),
-              {
-                id: generateId("section"),
-                type: "section" as const,
-                position,
-                label: "Section",
-                fill: "#ccc",
-                draggable: true,
-                fontSize: 14,
-                width: sectionWidth,
-                height: sectionHeight,
-                rows,
-              },
-            ],
-          };
-
+          case "section":
+            const rowCount = options?.rowCount ?? 1;
+            const colCount = options?.colCount ?? 1;
+          
+            const seatWidth = 20;
+            const seatGap = 8;
+            const rowHeight = 30;
+            const rowGap = 10;
+            const paddingX = 20;
+            const paddingY = 20;
+          
+            const sectionWidth =
+              paddingX * 2 + colCount * seatWidth + (colCount - 1) * seatGap;
+          
+            const sectionHeight =
+              paddingY * 2 + rowCount * rowHeight + (rowCount - 1) * rowGap;
+          
+            const config = {
+              seatWidth,
+              seatGap,
+              rowHeight,
+              rowGap,
+              paddingX,
+              paddingY,
+            };
+          
+            const rows = createRowsWithSeats(
+              rowCount,
+              colCount,
+              position.x,
+              position.y,
+              config
+            ).map((row) => ({
+              ...row,
+              label: "Row",
+              width: colCount * seatWidth + (colCount - 1) * seatGap,
+              height: rowHeight,
+              fill: "#ccc",
+              draggable: true,
+              fontSize: 12,
+              seats: row.seats.map((seat) => ({
+                ...seat,
+                seatType: "standard" as const,
+              })),
+            }));
+          
+            return {
+              ...floor,
+              sections: [
+                ...(floor.sections || []),
+                {
+                  id: generateId("section"),
+                  type: "section" as const,
+                  position,
+                  label: "Section",
+                  fill: "#ccc",
+                  draggable: true,
+                  fontSize: 14,
+                  width: sectionWidth,
+                  height: sectionHeight,
+                  rows,
+                },
+              ],
+            };
+          
         default:
           return floor;
       }
