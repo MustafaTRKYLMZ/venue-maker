@@ -12,7 +12,7 @@ export const createRowsWithSeats = (
     rowGap?: number;
     paddingX?: number;
     paddingY?: number;
-  }
+  },
 ) => {
   const seatWidth = config?.seatWidth ?? 20;
   const seatGap = config?.seatGap ?? 8;
@@ -22,7 +22,7 @@ export const createRowsWithSeats = (
   const paddingY = config?.paddingY ?? 10;
 
   return Array.from({ length: rowCount }).map((_, rowIndex) => {
-    const rowY = baseY + paddingY + rowIndex * (rowHeight + rowGap);
+    const rowY = paddingY + rowIndex * (rowHeight + rowGap);
 
     const seats = Array.from({ length: colCount }).map((_, seatIndex) => ({
       id: generateId("seat"),
@@ -42,8 +42,9 @@ export const createRowsWithSeats = (
     return {
       id: generateId("row"),
       type: "row" as const,
+
       position: {
-        x: baseX + paddingX,
+        x: paddingX,
         y: rowY,
       },
       seats,

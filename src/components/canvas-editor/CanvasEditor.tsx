@@ -100,20 +100,6 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
         <Layer>
           <CanvasElementsRenderer />
         </Layer>
-
-        <Layer>
-          <Rect
-            x={200}
-            y={200}
-            width={50}
-            height={50}
-            radius={50}
-            fill="blue"
-            stroke="black"
-            strokeWidth={2}
-            draggable
-          />
-        </Layer>
       </Stage>
 
       <CanvasControls

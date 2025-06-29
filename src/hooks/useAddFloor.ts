@@ -12,30 +12,10 @@ export const useAddFloor = (venue: Venue, setVenue: (v: Venue) => void) => {
       index,
       sections: [],
       doors: [],
-      stage: {
-        id: uuidv4(),
-        type: "stage",
-        position: { x: 100, y: 100 },
-        width: 200,
-        height: 100,
-        fill: "#222",
-        draggable: true,
-        label: "Main Stage",
-        fontSize: 14,
-      },
+      stage: undefined,
       walls: [],
       lights: [],
-      controlRoom: {
-        id: uuidv4(),
-        type: "controlRoom",
-        position: { x: 50, y: 50 },
-        width: 100,
-        height: 60,
-        fill: "#666",
-        label: "Control Room",
-        fontSize: 12,
-        draggable: true,
-      },
+      controlRoom: undefined,
     };
 
     const updatedVenue = {
