@@ -10,14 +10,14 @@ type CanvasEditorContextType = {
 };
 
 const CanvasEditorContext = createContext<CanvasEditorContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const useCanvasEditor = () => {
   const context = useContext(CanvasEditorContext);
   if (!context) {
     throw new Error(
-      "useCanvasEditor must be used within a CanvasEditorProvider"
+      "useCanvasEditor must be used within a CanvasEditorProvider",
     );
   }
   return context;

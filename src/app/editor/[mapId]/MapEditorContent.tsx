@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { LeftPanelTools } from "@/src/components/LeftPanelTools";
-import { useAddSection } from "@/src/hooks/useAddSection";
 import { useAddFloor } from "@/src/hooks/useAddFloor";
 import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 import { PropertiesPanel } from "@/src/components/PropertiesPanel";
@@ -25,8 +24,6 @@ export function MapEditorContent() {
   const [cols, setCols] = useState<number>(10);
   const [isMultipleSeatDialogOpen, setIsMultipleSeatDialogOpen] =
     useState(false);
-
-  const addSection = useAddSection(venue, setVenue, selectedFloorId ?? "");
   const addFloor = useAddFloor(venue, setVenue);
 
   useEffect(() => {
@@ -41,13 +38,6 @@ export function MapEditorContent() {
       setSelectedTool(null);
     }
   }, [selectedTool]);
-
-  useEffect(() => {
-    if (selectedTool?.type === "section" && selectedFloorId) {
-      addSection(selectedTool.rows, selectedTool.cols);
-      setSelectedTool(null);
-    }
-  }, [selectedTool, selectedFloorId]);
 
   const handleCloseMultipleSeatDialog = () => {
     setIsMultipleSeatDialogOpen(false);
@@ -72,10 +62,8 @@ export function MapEditorContent() {
       {/* Main content */}
       <div className="flex flex-grow overflow-visible">
         {/* Left panel */}
-        <aside className="w-40 bg-gray-100 border-r border-gray-300 overflow-auto p-2 z-10">
+        <aside className="w-40 bg-gray-100 border-r border-gray-300 overflow-auto p-1 z-10">
           <LeftPanelTools
-            selectedTool={selectedTool}
-            setSelectedTool={setSelectedTool}
             setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
           />
         </aside>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ElementType } from "../types/element";
+import { useMapEditor } from "../context/MapEditorContext";
 
 type AddMultipleSeatDialogProps = {
   rows: number;
@@ -19,17 +20,6 @@ export const AddMultipleSeatDialog = ({
   onClose,
 }: AddMultipleSeatDialogProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  // Konum hesapla
-  // useEffect(() => {
-  //   if (anchorRef?.current) {
-  //     const rect = anchorRef.current.getBoundingClientRect();
-  //     setPosition({
-  //       top: rect.top + window.scrollY,
-  //       left: rect.left + rect.width + 8,
-  //     });
-  //   }
-  // }, [anchorRef]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

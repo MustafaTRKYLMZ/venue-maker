@@ -21,7 +21,7 @@ export const TooltipContent = React.forwardRef<
       align={align}
       className={cn(
         "z-50 rounded-md bg-gray-700 px-2 py-1 text-xs text-white shadow-md animate-in fade-in-80",
-        className
+        className,
       )}
       {...props}
     />

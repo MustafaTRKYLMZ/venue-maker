@@ -1,3 +1,3 @@
 export const generateId = (prefix: string): string => {
-    return `${prefix}-${crypto.randomUUID()}`
-}
+  return `${prefix}-${crypto.randomUUID()}`;
+};

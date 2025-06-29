@@ -32,7 +32,7 @@ export const IconButton = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button {...props}>
+          <Button {...props} variant="ghost" isSelected={isSelected}>
             {isLoading ? (
               <span className="flex items-center space-x-2">
                 <LoadingSpinner size={20} color="text-white" />

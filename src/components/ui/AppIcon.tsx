@@ -18,9 +18,11 @@ export const AppIcon = ({
   return (
     <div
       className={cn(
-        "w-5 h-5 flex items-center justify-center rounded",
-        isActive ? "bg-primary text-white" : "text-blue-300 bg-transparent",
-        className
+        "w-8 h-8 flex items-center justify-center rounded",
+        isActive
+          ? "bg-primary text-white bg-blue-600 hover:bg-blue-700"
+          : "text-blue-700 bg-transparent",
+        className,
       )}
       style={style}
       {...props}

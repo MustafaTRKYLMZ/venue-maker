@@ -1,22 +1,19 @@
-import { MdEventSeat } from "react-icons/md";
+import { MdDoorSliding, MdEventSeat } from "react-icons/md";
 import { ElementType, ToolType } from "../types/element";
 import { IconButton } from "./ui/IconButton";
 import { FaTheaterMasks, FaFont } from "react-icons/fa";
 import { GiStoneWall } from "react-icons/gi";
 import { AddMultipleSeat } from "./AddMultipleSeat";
 import { useState } from "react";
+import { useMapEditor } from "../context/MapEditorContext";
 
 export type ToolsProps = {
-  selectedTool: ToolType | null;
-  setSelectedTool: (tool: ToolType | null) => void;
   setIsMultipleSeatDialogOpen: (isOpen: boolean) => void;
 };
 
-export const Tools = ({
-  selectedTool,
-  setSelectedTool,
-  setIsMultipleSeatDialogOpen,
-}: ToolsProps) => {
+export const Tools = ({ setIsMultipleSeatDialogOpen }: ToolsProps) => {
+  const { selectedTool, setSelectedTool } = useMapEditor();
+
   const handleToolClick = (type: ElementType) => {
     const tool =
       type === "section" ? { type, rows: 0, cols: 0 } : ({ type } as ToolType);
@@ -24,7 +21,7 @@ export const Tools = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div>
       <IconButton
         icon={<MdEventSeat />}
         tooltipText="Add Seat"
@@ -54,15 +51,18 @@ export const Tools = ({
         aria-label="Add Wall"
         isSelected={selectedTool?.type === "wall"}
       />
+
+      {/* Add Door Button */}
+      <IconButton
+        icon={<MdDoorSliding />}
+        tooltipText="Add Door"
+        onClick={() => handleToolClick("door")}
+        aria-label="Add Door"
+        isSelected={selectedTool?.type === "door"}
+      />
+
       <AddMultipleSeat
-        setSelectedTool={setSelectedTool}
         setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
-        // rows={rows}
-        // setRows={setRows}
-        // cols={cols}
-        // setCols={setCols}
-        selectedTool={selectedTool}
-        // onConfirmAddSeats={handleConfirmAddSeats}
       />
     </div>
   );

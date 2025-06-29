@@ -14,7 +14,7 @@ type MapEditorContextType = {
 };
 
 const MapEditorContext = createContext<MapEditorContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const useMapEditor = () => {
@@ -57,7 +57,7 @@ export const MapEditorProvider = ({
 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [selectedFloorId, setSelectedFloorId] = useState<string | null>(
-    venue.floors.length > 0 ? venue.floors[0].id : "1"
+    venue.floors.length > 0 ? venue.floors[0].id : "1",
   );
   return (
     <MapEditorContext.Provider

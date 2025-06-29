@@ -60,11 +60,11 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
       if (selectedTool && selectedFloorId) {
         const stage = stageRef.current;
         const pointerPosition = stage.getPointerPosition();
-        console.log("Pointer position:", pointerPosition);
+
         if (!pointerPosition) return;
 
         addElement(selectedTool, pointerPosition);
-        console.log("Added element:", pointerPosition);
+
         setSelectedTool(null);
       }
     }

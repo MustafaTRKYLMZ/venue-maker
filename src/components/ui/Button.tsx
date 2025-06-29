@@ -17,19 +17,19 @@ export const Button = React.forwardRef<
       isSelected = false,
       ...props
     },
-    ref
+    ref,
   ) => {
     const base =
       "inline-flex items-center justify-center rounded-md font-medium transition";
 
     const variants = {
-      primary: "bg-blue-600 text-white hover:bg-blue-700",
+      primary: "bg-blue-600 text-white hover:bg-blue-700 w-full",
       secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
       ghost: "bg-transparent hover:bg-transparent text-gray-700",
     };
 
     const selectedVariants = {
-      primary: "bg-blue-800 text-white",
+      primary: "bg-blue-800 text-white w-full",
       secondary: "bg-gray-400 text-gray-900",
       ghost: "bg-transparent hover:bg-gray-100 text-gray-700 p-0",
     };
@@ -47,10 +47,10 @@ export const Button = React.forwardRef<
           base,
           isSelected ? selectedVariants[variant] : variants[variant],
           sizes[size],
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
