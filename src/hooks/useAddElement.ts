@@ -1,123 +1,133 @@
-// hooks/useAddElement.ts
-import { useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { BaseElement } from "@/src/types/baseElement";
-import { ElementType } from "@/src/types/element";
-import { ToolType } from "../app/editor/[mapId]/page";
+import { Position } from "../types/baseElement";
+import { ToolType } from "../types/element";
 import { Venue } from "../types/venue";
-import { Tool } from "firebase/ai";
+import { generateId } from "../utils/generateId";
 
-interface UseAddElementProps {
-  setElements: React.Dispatch<React.SetStateAction<BaseElement[]>>;
-  handleSelectElements: (elements: BaseElement[]) => void;
-  setSelectedTool: (tool: ToolType | null) => void;
-}
+export const useAddElement = (
+  venue: Venue,
+  setVenue: (venue: Venue) => void,
+  floorId: string
+) => {
 
-export const useAddElement = ({
-  setElements,
-  handleSelectElements,
-  setSelectedTool,
-}: UseAddElementProps) => {
-  const addElementAtPosition = useCallback(
-    (type: string, position: { x: number; y: number }) => {
-      const id = uuidv4();
-      let newElement: BaseElement | null = null;
-      console.log("use add element at type", type, "at position", position);
-      switch (type) {
-        case "seat":
-          newElement = {
-            id: `seat-${id.substring(0, 4)}`,
-            type: "seat",
-            position: {
-              x: position.x - 15,
-              y: position.y - 15,
-              row: 0,
-              col: 0,
-            },
+  return (toolType: ToolType, position:Position) => {
+    console.log("Adding element:", toolType, "at position:", "x",position.x, ";y",position.y);
+    const updatedFloors = venue.floors.map((floor) => {
+      if (floor.id !== floorId) return floor;
 
-            width: 30,
-            height: 30,
-            fill: "#4CAF50",
-            text: "New Seat",
-            fontSize: 14,
-            draggable: true,
-          } as BaseElement;
-          break;
+      switch (toolType?.type) {
         case "stage":
-          newElement = {
-            id: `stage-${id.substring(0, 4)}`,
-            type: "stage",
-            position: {
-              x: position.x - 100,
-              y: position.y - 40,
-              row: 0,
-              col: 0,
+          return {
+            ...floor,
+            stage: {
+              id: generateId("stage"),
+              type: "stage" as const,
+              position:{
+                x: position.x,
+                y: position.y,
+              },
+              width: 200,
+              height: 100,
+              label: "Stage",
+              fill: "#ccc",
+              draggable: true,
+              fontSize: 14,
             },
-
-            width: 200,
-            height: 80,
-            fill: "#607D8B",
-            text: "New Stage",
-            fontSize: 20,
-            draggable: true,
-
-            label: "Stage Label",
           };
-          break;
-        case "text":
-          newElement = {
-            id: `text-${id.substring(0, 4)}`,
-            type: "text",
-            position: {
-              x: position.x - 50,
-              y: position.y - 15,
-              row: 0,
-              col: 0,
+
+        case "controlRoom":
+          return {
+            ...floor,
+            controlRoom: {
+              id:generateId("controlRoom"),
+              type: "controlRoom" as const,
+              position:{
+                x: position.x,
+                y: position.y,
+              },
+              width: 150,
+              height: 80,
+              label: "Control Room",
+              fill: "#ccc",
+              draggable: true,
+              fontSize: 14,
             },
-
-            width: 100,
-            height: 30,
-            text: "New Text",
-            fontSize: 18,
-            fill: "black",
-            draggable: true,
-            label: "Text Label",
           };
-          break;
-        case "wall":
-          newElement = {
-            id: `wall-${id.substring(0, 4)}`,
-            type: "wall",
-            position: {
-              x: position.x - 100,
-              y: position.y - 5,
-              row: 0,
-              col: 0,
-            },
 
-            width: 200,
-            height: 10,
-            fill: "#795548",
-            draggable: true,
-            stroke: "#5D4037",
-            strokeWidth: 2,
-            label: "Wall Label",
-            fontSize: 12,
+        case "door":
+          return {
+            ...floor,
+            doors: [
+              ...(floor.doors || []),
+              {
+                id: generateId("door"),
+                type: "door" as const,
+                position:{
+                  x: position.x,
+                  y: position.y,
+                },
+                width: 40,
+                height: 10,
+                direction: "in" as "in" | "out", 
+                label: "Door",
+                fill: "#ccc",
+                draggable: true,
+                fontSize: 12,
+              },
+            ],
           };
-          break;
+case "wall":
+          return {
+            ...floor,
+            walls: [
+              ...(floor.walls || []),
+              {
+                id: generateId("wall"),
+                type: "wall" as const,
+                position:{
+                  x: position.x,
+                  y: position.y,
+                },
+                width: 100,
+                height: 10,
+                label: "Wall",
+                fill: "#ccc",
+                draggable: true,
+                fontSize: 12,
+              },
+            ],
+          };
+        case "light":
+          return {
+            ...floor,
+            lights: [
+              ...(floor.lights || []),
+              {
+                id: generateId("light"),
+                type: "light" as const,
+                position:{
+                  x: position.x,
+                  y: position.y,
+                },
+                radius: 10,
+                lightType: "spot" as "spot" | "flood" | "ambient", 
+                label: "Light",
+                width: 20, 
+                height: 20,
+                fill: "#fff",
+                draggable: true,
+                fontSize: 12, 
+              },
+            ],
+          };
+
         default:
-          break;
+          return floor;
       }
-
-      if (newElement) {
-        setElements((prev) => [...prev, newElement]);
-        handleSelectElements([newElement]);
-      } else {
-        setSelectedTool(null);
-      }
-    },
-    [setElements, handleSelectElements, setSelectedTool],
-  );
-
-  return { addElementAtPosition };
+    });
+console.log("Updated floors:", updatedFloors);
+    setVenue({
+      ...venue,
+      floors: updatedFloors,
+    });
+  };
 };

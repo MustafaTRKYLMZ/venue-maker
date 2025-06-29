@@ -8,6 +8,9 @@ import { CanvasControls } from "../CanvasControls/CanvasControls";
 import { useWindowSize } from "@/src/hooks/useWindowSize";
 import { renderGrid } from "@/src/utils/renderGrid";
 import { useCanvasEditor } from "./CanvasEditorContext";
+import { useMapEditor } from "@/src/context/MapEditorContext";
+import Konva from "konva";
+import { useAddElement } from "@/src/hooks/useAddElement";
 
 export type CanvasEditorProps = {
   venue: Venue;
@@ -20,9 +23,6 @@ export type CanvasEditorProps = {
 };
 
 export const CanvasEditor: FC<CanvasEditorProps> = ({
-  venue,
-  setVenue,
-  selectedFloorId,
   onSelectFloor,
   onAddFloor,
   selectedTool,
@@ -31,15 +31,22 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
   const stageRef = useRef<any>(null);
   const { rotation, setRotation, zoom, isDragging, setIsDragging } =
     useCanvasEditor();
-
+  const { venue, setVenue, selectedFloorId } = useMapEditor();
+  const addElement = useAddElement(venue, setVenue, selectedFloorId || "");
   const { width, height } = useWindowSize();
 
   useEffect(() => {
-    if (stageRef.current) {
-      const container = stageRef.current.container();
-      container.style.cursor = isDragging ? "grabbing" : "grab";
+    const container = stageRef.current?.container();
+    if (!container) return;
+
+    if (isDragging) {
+      container.style.cursor = "grabbing";
+    } else if (selectedTool) {
+      container.style.cursor = "crosshair";
+    } else {
+      container.style.cursor = "grab";
     }
-  }, [isDragging]);
+  }, [isDragging, selectedTool]);
 
   const scaleFactor = zoom / 100;
 
@@ -47,6 +54,21 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
     stageRef.current.rotation(rotation);
     stageRef.current.batchDraw();
   }, [rotation]);
+
+  const onCanvasClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.target === e.target.getStage()) {
+      if (selectedTool && selectedFloorId) {
+        const stage = stageRef.current;
+        const pointerPosition = stage.getPointerPosition();
+        console.log("Pointer position:", pointerPosition);
+        if (!pointerPosition) return;
+
+        addElement(selectedTool, pointerPosition);
+        console.log("Added element:", pointerPosition);
+        setSelectedTool(null);
+      }
+    }
+  };
 
   return (
     <>
@@ -61,6 +83,7 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
         rotation={rotation}
         scaleX={scaleFactor}
         scaleY={scaleFactor}
+        onClick={onCanvasClick}
       >
         <Layer>{renderGrid(width, height)}</Layer>
 

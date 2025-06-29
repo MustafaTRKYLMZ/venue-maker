@@ -35,7 +35,7 @@ export type Floor = {
   sections: Section[];
   controlRoom?: ControlRoom;
   doors: Door[];
-  stage: Stage;
+  stage?: Stage;
   walls: Wall[];
   lights: Light[];
 };

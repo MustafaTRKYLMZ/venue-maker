@@ -34,7 +34,19 @@ export const MapEditorProvider = ({
     id: "venue-1",
     type: "venue",
     name: "New Venue",
-    floors: [],
+    floors: [
+      {
+        id: "1",
+        name: "Ground Floor",
+        type: "floor",
+        index: 0,
+        sections: [],
+        doors: [],
+        stage: undefined,
+        walls: [],
+        lights: [],
+      },
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     address: "Lele Street 123",
@@ -44,8 +56,9 @@ export const MapEditorProvider = ({
   });
 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
-  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null);
-
+  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(
+    venue.floors.length > 0 ? venue.floors[0].id : "1"
+  );
   return (
     <MapEditorContext.Provider
       value={{
