@@ -25,7 +25,8 @@ export const Button = React.forwardRef<
     const variants = {
       primary: "bg-blue-600 text-white hover:bg-blue-700 w-full",
       secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-      ghost: "bg-transparent hover:bg-transparent text-gray-700",
+      ghost:
+        "bg-transparent hover:bg-transparent hover:text-blue-500 text-gray-700",
     };
 
     const selectedVariants = {

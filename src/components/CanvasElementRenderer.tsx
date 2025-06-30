@@ -106,190 +106,222 @@ export const CanvasElementsRenderer = () => {
 
   return (
     <>
-      {floor.sections?.map((section) => (
-        <Group
-          key={section.id}
-          x={section.position.x}
-          y={section.position.y}
-          draggable={section.draggable}
-          onDragEnd={(e) =>
-            handleDragEnd("section", section.id, e.target.x(), e.target.y())
-          }
-        >
-          <Rect
-            width={section.width}
-            height={section.height}
-            fill={section.fill}
-            stroke="blue"
-            strokeWidth={1}
-          />
-          {section.rows.map((row) => (
-            <Group
-              key={row.id}
-              x={row.position.x}
-              y={row.position.y}
-              draggable={row.draggable}
-              onDragEnd={(e) =>
-                handleDragEnd("row", row.id, e.target.x(), e.target.y())
-              }
-            >
-              <Rect
-                width={row.width}
-                height={row.height}
-                fill={row.fill}
-                stroke="yellow"
-                strokeWidth={0.5}
-              />
-              {row.seats.map((seat) => (
-                <Circle
-                  key={seat.id}
-                  x={seat.position.x + seat.width / 2}
-                  y={seat.position.y + seat.height / 2}
-                  radius={seat.width / 2}
-                  fill={seat.fill}
-                  stroke="red"
-                  strokeWidth={0.5}
-                  draggable={seat.draggable}
+      {venue.floors.map((floor) => {
+        const isSelected = floor.id === selectedFloorId;
+        const opacity = isSelected ? 1 : 0.1;
+        const listening = isSelected; // interaktifliği kapatmak için
+        return (
+          <Group key={floor.id} opacity={opacity} listening={listening}>
+            {/* STAGE */}
+            {floor.stage && (
+              <Group
+                key={floor.stage.id}
+                x={floor.stage.position.x}
+                y={floor.stage.position.y}
+                draggable={isSelected && floor.stage.draggable}
+                onDragEnd={(e) => {
+                  if (isSelected) {
+                    handleDragEnd(
+                      "stage",
+                      floor.stage?.id || "",
+                      e.target.x(),
+                      e.target.y(),
+                    );
+                  }
+                }}
+              >
+                <Rect
+                  width={floor.stage.width}
+                  height={floor.stage.height}
+                  fill={floor.stage.fill}
+                  stroke="green"
                 />
-                // </Group>
-              ))}
-            </Group>
-          ))}
-        </Group>
-      ))}
-      {floor.stage && (
-        <Group
-          key={floor?.stage.id}
-          x={floor?.stage.position.x}
-          y={floor?.stage.position.y}
-          draggable={floor?.stage.draggable}
-          onDragEnd={(e) => {
-            if (floor?.stage) {
-              handleDragEnd(
-                "stage",
-                floor?.stage.id,
-                e.target.x(),
-                e.target.y(),
-              );
-            }
-          }}
-        >
-          <Rect
-            width={floor?.stage.width}
-            height={floor?.stage.height}
-            fill={floor?.stage.fill}
-            stroke="green"
-            strokeWidth={1}
-          />
-          <Text
-            text={floor?.stage.label}
-            fontSize={floor?.stage.fontSize}
-            fill="black"
-            x={
-              floor?.stage.width / 2 -
-              (floor?.stage.label.length * floor?.stage.fontSize) / 4
-            }
-            y={floor?.stage.height / 2 - floor?.stage.fontSize / 2}
-          />
-        </Group>
-      )}
-      {floor?.controlRoom && (
-        <Group
-          key={floor?.controlRoom.id}
-          x={floor?.controlRoom.position.x}
-          y={floor?.controlRoom.position.y}
-          draggable={floor?.controlRoom.draggable}
-          onDragEnd={(e) => {
-            if (floor?.controlRoom) {
-              handleDragEnd(
-                "controlRoom",
-                floor?.controlRoom.id,
-                e.target.x(),
-                e.target.y(),
-              );
-            }
-          }}
-        >
-          <Rect
-            width={floor?.controlRoom.width}
-            height={floor?.controlRoom.height}
-            fill={floor?.controlRoom.fill}
-            stroke="purple"
-            strokeWidth={1}
-          />
-          <Text
-            text={floor?.controlRoom.label}
-            fontSize={floor?.controlRoom.fontSize}
-            fill="black"
-            x={
-              floor?.controlRoom.width / 2 -
-              (floor?.controlRoom.label.length * floor?.controlRoom.fontSize) /
-                4
-            }
-            y={floor?.controlRoom.height / 2 - floor?.controlRoom.fontSize / 2}
-          />
-        </Group>
-      )}
-      {floor?.doors?.map((door) => (
-        <Group
-          key={door.id}
-          x={door.position.x}
-          y={door.position.y}
-          draggable={door.draggable}
-          onDragEnd={(e) =>
-            handleDragEnd("door", door.id, e.target.x(), e.target.y())
-          }
-        >
-          <Rect
-            width={door.width}
-            height={door.height}
-            fill={door.fill}
-            stroke="orange"
-            strokeWidth={1}
-          />
-        </Group>
-      ))}
-      {floor?.walls &&
-        floor.walls.map((wall) => (
-          <Group
-            key={wall.id}
-            x={wall.position.x}
-            y={wall.position.y}
-            draggable={wall.draggable}
-            onDragEnd={(e) =>
-              handleDragEnd("wall", wall.id, e.target.x(), e.target.y())
-            }
-          >
-            <Rect
-              width={wall.width}
-              height={wall.height}
-              fill={wall.fill}
-              stroke="gray"
-              strokeWidth={1}
-            />
+                <Text
+                  text={floor.stage.label}
+                  fontSize={floor.stage.fontSize}
+                  fill="black"
+                  x={
+                    floor.stage.width / 2 -
+                    (floor.stage.label.length * floor.stage.fontSize) / 4
+                  }
+                  y={floor.stage.height / 2 - floor.stage.fontSize / 2}
+                />
+              </Group>
+            )}
+
+            {/* CONTROL ROOM */}
+            {floor.controlRoom && (
+              <Group
+                key={floor.controlRoom.id}
+                x={floor.controlRoom.position.x}
+                y={floor.controlRoom.position.y}
+                draggable={isSelected && floor.controlRoom.draggable}
+                onDragEnd={(e) => {
+                  if (isSelected) {
+                    handleDragEnd(
+                      "controlRoom",
+                      floor.controlRoom?.id || "",
+                      e.target.x(),
+                      e.target.y(),
+                    );
+                  }
+                }}
+              >
+                <Rect
+                  width={floor.controlRoom.width}
+                  height={floor.controlRoom.height}
+                  fill={floor.controlRoom.fill}
+                  stroke="purple"
+                />
+                <Text
+                  text={floor.controlRoom.label}
+                  fontSize={floor.controlRoom.fontSize}
+                  fill="black"
+                  x={
+                    floor.controlRoom.width / 2 -
+                    (floor.controlRoom.label.length *
+                      floor.controlRoom.fontSize) /
+                      4
+                  }
+                  y={
+                    floor.controlRoom.height / 2 -
+                    floor.controlRoom.fontSize / 2
+                  }
+                />
+              </Group>
+            )}
+
+            {/* DOORS */}
+            {floor.doors.map((door) => (
+              <Group
+                key={door.id}
+                x={door.position.x}
+                y={door.position.y}
+                draggable={isSelected && door.draggable}
+                onDragEnd={(e) =>
+                  isSelected &&
+                  handleDragEnd("door", door.id, e.target.x(), e.target.y())
+                }
+              >
+                <Rect
+                  width={door.width}
+                  height={door.height}
+                  fill={door.fill}
+                  stroke="orange"
+                />
+              </Group>
+            ))}
+
+            {/* WALLS */}
+            {floor.walls.map((wall) => (
+              <Group
+                key={wall.id}
+                x={wall.position.x}
+                y={wall.position.y}
+                draggable={isSelected && wall.draggable}
+                onDragEnd={(e) =>
+                  isSelected &&
+                  handleDragEnd("wall", wall.id, e.target.x(), e.target.y())
+                }
+              >
+                <Rect
+                  width={wall.width}
+                  height={wall.height}
+                  fill={wall.fill}
+                  stroke="gray"
+                />
+              </Group>
+            ))}
+
+            {/* LIGHTS */}
+            {floor.lights.map((light) => (
+              <Group
+                key={light.id}
+                x={light.position.x}
+                y={light.position.y}
+                draggable={isSelected && light.draggable}
+                onDragEnd={(e) =>
+                  isSelected &&
+                  handleDragEnd("light", light.id, e.target.x(), e.target.y())
+                }
+              >
+                <Circle
+                  radius={light.width / 2}
+                  x={light.position.x}
+                  y={light.position.y}
+                  fill={light.fill}
+                  stroke="yellow"
+                />
+              </Group>
+            ))}
+
+            {/* SECTIONS */}
+            {floor.sections.map((section) => (
+              <Group
+                key={section.id}
+                x={section.position.x}
+                y={section.position.y}
+                draggable={isSelected && section.draggable}
+                onDragEnd={(e) =>
+                  isSelected &&
+                  handleDragEnd(
+                    "section",
+                    section.id,
+                    e.target.x(),
+                    e.target.y(),
+                  )
+                }
+              >
+                <Rect
+                  width={section.width}
+                  height={section.height}
+                  fill={section.fill}
+                  stroke="blue"
+                />
+                {section.rows.map((row) => (
+                  <Group
+                    key={row.id}
+                    x={row.position.x}
+                    y={row.position.y}
+                    draggable={isSelected && row.draggable}
+                    onDragEnd={(e) =>
+                      isSelected &&
+                      handleDragEnd("row", row.id, e.target.x(), e.target.y())
+                    }
+                  >
+                    <Rect
+                      width={row.width}
+                      height={row.height}
+                      fill={row.fill}
+                      stroke="yellow"
+                    />
+                    {row.seats.map((seat) => (
+                      <Circle
+                        key={seat.id}
+                        x={seat.position.x + seat.width / 2}
+                        y={seat.position.y + seat.height / 2}
+                        radius={seat.width / 2}
+                        fill={seat.fill}
+                        stroke="red"
+                        draggable={isSelected && seat.draggable}
+                        onDragEnd={(e) =>
+                          isSelected &&
+                          handleDragEnd(
+                            "seat",
+                            seat.id,
+                            e.target.x(),
+                            e.target.y(),
+                          )
+                        }
+                      />
+                    ))}
+                  </Group>
+                ))}
+              </Group>
+            ))}
           </Group>
-        ))}
-      {floor?.lights &&
-        floor.lights.map((light) => (
-          <Group
-            key={light.id}
-            x={light.position.x}
-            y={light.position.y}
-            draggable={light.draggable}
-            onDragEnd={(e) =>
-              handleDragEnd("light", light.id, e.target.x(), e.target.y())
-            }
-          >
-            <Circle
-              radius={light.width / 2}
-              x={light.position.x}
-              y={light.position.y}
-              fill={light.fill}
-              stroke="yellow"
-              strokeWidth={1}
-            />
-          </Group>
-        ))}
+        );
+      })}
     </>
   );
 };

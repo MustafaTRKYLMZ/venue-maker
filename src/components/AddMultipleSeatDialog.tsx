@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ElementType } from "../types/element";
 import { useMapEditor } from "../context/MapEditorContext";
+import { Button } from "./ui/Button";
+import { IoMdClose } from "react-icons/io";
 
 type AddMultipleSeatDialogProps = {
   rows: number;
@@ -53,7 +55,7 @@ export const AddMultipleSeatDialog = ({
     >
       <div className="flex justify-end">
         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-          ✕
+          <IoMdClose />
         </button>
       </div>
       <h3 className="text-lg font-semibold mb-3 text-gray-800">
@@ -81,12 +83,7 @@ export const AddMultipleSeatDialog = ({
           />
         </label>
 
-        <button
-          onClick={handleAddGrid}
-          className="w-full mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-        >
-          Add Multiple Seats
-        </button>
+        <Button onClick={handleAddGrid}>Add Multiple Seats</Button>
       </div>
     </div>
   );
