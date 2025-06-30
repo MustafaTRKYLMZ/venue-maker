@@ -1,45 +1,68 @@
-import { MdEventSeat } from "react-icons/md";
-import { ElementType } from "../types/element";
-import { IconButton } from "./IconButton";
+import { MdDoorSliding, MdEventSeat } from "react-icons/md";
+import { ElementType, ToolType } from "../types/element";
+import { IconButton } from "./ui/IconButton";
 import { FaTheaterMasks, FaFont } from "react-icons/fa";
 import { GiStoneWall } from "react-icons/gi";
+import { AddMultipleSeat } from "./AddMultipleSeat";
+import { useState } from "react";
+import { useMapEditor } from "../context/MapEditorContext";
 
 export type ToolsProps = {
-  handleAddButtonClick: (type: ElementType) => void;
+  setIsMultipleSeatDialogOpen: (isOpen: boolean) => void;
 };
 
-export const Tools = ({ handleAddButtonClick }: ToolsProps) => {
+export const Tools = ({ setIsMultipleSeatDialogOpen }: ToolsProps) => {
+  const { selectedTool, setSelectedTool } = useMapEditor();
+
+  const handleToolClick = (type: ElementType) => {
+    const tool =
+      type === "section" ? { type, rows: 0, cols: 0 } : ({ type } as ToolType);
+    setSelectedTool(tool);
+  };
+
   return (
-    <div className="space-y-2">
+    <div>
       <IconButton
-        Icon={MdEventSeat}
-        tooltipText="Undo"
-        onClick={() => handleAddButtonClick("seat")}
-        aria-label=" Add Seat"
-        className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+        icon={<MdEventSeat />}
+        tooltipText="Add Seat"
+        onClick={() => handleToolClick("seat")}
+        isSelected={selectedTool?.type === "seat"}
       />
       <IconButton
-        Icon={FaTheaterMasks}
+        icon={<FaTheaterMasks />}
         tooltipText="Add Stage"
-        onClick={() => handleAddButtonClick("stage")}
-        aria-label="Add stage"
-        className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+        onClick={() => handleToolClick("stage")}
+        aria-label="Add Stage"
+        isSelected={selectedTool?.type === "stage"}
       />
       {/* Add Text Button */}
       <IconButton
-        Icon={FaFont}
+        icon={<FaFont />}
         tooltipText="Add Text"
-        onClick={() => handleAddButtonClick("text")}
-        aria-label="Add text"
-        className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+        onClick={() => handleToolClick("text")}
+        aria-label="Add Text"
+        isSelected={selectedTool?.type === "text"}
       />
       {/* Add Wall Button */}
       <IconButton
-        Icon={GiStoneWall}
+        icon={<GiStoneWall />}
         tooltipText="Add Wall"
-        onClick={() => handleAddButtonClick("wall")}
-        aria-label="Add wall"
-        className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+        onClick={() => handleToolClick("wall")}
+        aria-label="Add Wall"
+        isSelected={selectedTool?.type === "wall"}
+      />
+
+      {/* Add Door Button */}
+      <IconButton
+        icon={<MdDoorSliding />}
+        tooltipText="Add Door"
+        onClick={() => handleToolClick("door")}
+        aria-label="Add Door"
+        isSelected={selectedTool?.type === "door"}
+      />
+
+      <AddMultipleSeat
+        setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
       />
     </div>
   );

@@ -1,55 +1,35 @@
-import { IconButton } from "./IconButton";
-import { useState } from "react";
-import { AddMultipleSeatDialog } from "./AddMultipleSeatDialog";
+import { IconButton } from "./ui/IconButton";
 import { FaTh } from "react-icons/fa";
-import { ElementType } from "../types/element";
+import { ElementType, ToolType } from "../types/element";
+import { useMapEditor } from "../context/MapEditorContext";
 
 export type AddMultipleSeatProps = {
-  rows: number;
-  setRows: (value: number) => void;
-  setCols: (value: number) => void;
-  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
-  cols: number;
+  setIsMultipleSeatDialogOpen: (isOpen: boolean) => void;
 };
 export const AddMultipleSeat = ({
-  rows,
-  setRows,
-  setCols,
-  onConfirmAddSeats,
-  cols,
+  setIsMultipleSeatDialogOpen,
 }: AddMultipleSeatProps) => {
-  const [isMultipleSeatDialogOpen, setIsMultipleSeatDialogOpen] =
-    useState(false);
+  const { selectedTool, setSelectedTool } = useMapEditor();
 
-  const handleOpenMultipleSeatDialog = () => {
+  const handleOpenMultipleSeatDialog = (type: ElementType) => {
+    if (type === "section") {
+      const tool: ToolType = { type, rows: 0, cols: 0 };
+      setSelectedTool(tool);
+    }
+    console.log("Opening multiple seat dialog with type:", type);
     setIsMultipleSeatDialogOpen(true);
   };
-
-  const handleCloseMultipleSeatDialog = () => {
-    setIsMultipleSeatDialogOpen(false);
-  };
-
+  console.log("AddMultipleSeat rendered >>>", selectedTool?.type);
   return (
     <div className="mb-4 mt-2 flex flex-col gap-2">
       <div className="relative">
         <IconButton
-          Icon={FaTh}
-          tooltipText="Add Multiple Seats (Grid)"
-          onClick={handleOpenMultipleSeatDialog}
+          icon={<FaTh />}
+          tooltipText="Add Multiple Seats"
+          onClick={() => handleOpenMultipleSeatDialog("section")}
           aria-label="Add multiple seats"
-          className="text-left px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-800 justify-start"
+          isSelected={selectedTool?.type === "section"}
         />
-        {isMultipleSeatDialogOpen && (
-          <AddMultipleSeatDialog
-            rows={rows}
-            setRows={setRows}
-            cols={cols}
-            setCols={setCols}
-            onConfirmAddSeats={onConfirmAddSeats}
-            onClose={handleCloseMultipleSeatDialog}
-            positionClasses="left-full top-0 ml-4"
-          />
-        )}
       </div>
     </div>
   );

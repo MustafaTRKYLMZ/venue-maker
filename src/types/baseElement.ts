@@ -1,22 +1,28 @@
-// types/mapElement.ts
-import { ElementType } from "./element"; // Make sure this path is correct
+// types/baseElement.ts
+import { ElementType } from "./element";
 
-export interface MapElement {
-  id: string;
-  type: ElementType;
+export type Position = {
   x: number;
   y: number;
+  row?: number;
+  col?: number;
+};
+
+export interface BaseElement {
+  id: string;
+  type: ElementType;
+  position: Position;
+  label: string;
   width: number;
   height: number;
-  fill?: string;
+  fill: string;
   draggable: boolean;
   text?: string;
-  fontSize?: number;
+  fontSize: number;
   rotation?: number;
   stroke?: string;
   strokeWidth?: number;
 
-  children?: MapElement[];
   edgeCurvatures?: [number, number, number, number];
   cornerRadii?: [number, number, number, number];
 

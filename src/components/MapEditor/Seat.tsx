@@ -1,24 +1,26 @@
 import React, { FC } from "react";
-import { Circle, Text } from "react-konva";
-import { MapElement } from "../../types/mapElement";
+import { Circle, Group, Text } from "react-konva";
+import { Seat as SeatType } from "@/src/types/venue";
 
 export type SeatProps = {
-  el: MapElement;
+  el: SeatType;
   selectedIds: string[];
+  handleElementClick?: (e: any, id: string) => void;
 };
 
 export const Seat: FC<SeatProps> = ({ el, selectedIds }) => {
+  const isSelected = selectedIds.includes(el.id);
   return (
-    <>
+    <Group x={el.position.x} y={el.position.y}>
       <Circle
         x={el.width / 2}
         y={el.height / 2}
-        radius={el.width / 2}
-        fill={el.fill}
-        stroke={selectedIds.includes(el.id) ? "blue" : undefined}
+        radius={isSelected ? el.width / 2 : 6}
+        fill={isSelected ? "red" : el.fill}
+        stroke={isSelected ? "blue" : "red"}
         strokeWidth={selectedIds.includes(el.id) ? 2 : 0}
       />
-      {el.text && (
+      {isSelected && el.text && (
         <Text
           text={el.text}
           fontSize={el.fontSize || 12}
@@ -33,6 +35,6 @@ export const Seat: FC<SeatProps> = ({ el, selectedIds }) => {
           y={el.height / 2}
         />
       )}
-    </>
+    </Group>
   );
 };

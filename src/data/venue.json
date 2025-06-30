@@ -1,0 +1,184 @@
+{
+  "venue": {
+    "id": "venue-001",
+    "name": "Grand Performance Hall",
+    "address": "123 Main St, Cityville, ST 12345",
+    "capacity": 5000,
+    "description": "A premier venue for concerts and performances, featuring state-of-the-art acoustics and seating.",
+    "image": "https://example.com/images/grand-performance-hall.jpg",
+    "contact": {
+      "phone": "+1 (555) 123-4567",
+      "email": "emai@email.com",
+      "website": "https://example.com/grand-performance-hall"
+    },
+    "floors": [
+      {
+        "id": "floor-1",
+        "type": "floor",
+        "name": "Ground Floor",
+        "index": 0,
+        "controlRoom": {
+          "id": "control-001",
+          "type": "controlRoom",
+          "label": "Control Room 1",
+          "position": { "x": 450, "y": 700 },
+          "width": 100,
+          "height": 50
+        },
+        "stage": {
+          "id": "stage-1",
+          "type": "stage",
+          "label": "Main Stage",
+          "position": { "x": 300, "y": 50 },
+          "width": 400,
+          "height": 100
+        },
+        "doors": [
+          {
+            "id": "door-1",
+            "type": "door",
+            "label": "Main Entrance",
+            "position": { "x": 0, "y": 500 }
+          },
+          {
+            "id": "door-2",
+            "type": "door",
+            "label": "Side Entrance",
+            "position": { "x": 600, "y": 500 }
+          }
+        ],
+        "lights": [
+          {
+            "id": "light-1",
+            "type": "light",
+            "lightType": "spotlight",
+            "position": { "x": 200, "y": 100 }
+          },
+          {
+            "id": "light-2",
+            "type": "light",
+            "lightType": "ambient",
+            "position": { "x": 400, "y": 100 }
+          }
+        ],
+        "sections": [
+          {
+            "id": "section-a",
+            "type": "section",
+            "name": "Section A",
+            "position": { "x": 100, "y": 200 },
+            "seats": [
+              {
+                "id": "seat-a1",
+                "type": "seat",
+                "label": "A1",
+                "position": { "x": 110, "y": 210 },
+                "seatType": "vip",
+                "color": "#FFD700",
+                "price": 150
+              },
+              {
+                "id": "seat-a2",
+                "type": "seat",
+                "label": "A2",
+                "position": { "x": 140, "y": 210 },
+                "seatType": "vip",
+                "color": "#FFD700",
+                "price": 150
+              }
+            ]
+          },
+          {
+            "id": "section-b",
+            "type": "section",
+            "name": "Section B",
+            "position": { "x": 300, "y": 200 },
+            "seats": [
+              {
+                "id": "seat-b1",
+                "type": "seat",
+                "label": "B1",
+                "position": { "x": 310, "y": 210 },
+                "seatType": "regular",
+                "color": "#87CEFA",
+                "price": 100
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "floor-2",
+        "type": "floor",
+        "name": "Mezzanine",
+        "index": 1,
+        "controlRoom": {
+          "id": "control-002",
+          "type": "controlRoom",
+          "label": "Control Room 2",
+          "position": { "x": 450, "y": 300 },
+          "width": 100,
+          "height": 50
+        },
+        "stage": null,
+        "doors": [
+          {
+            "id": "door-3",
+            "type": "door",
+            "label": "Upper Entrance",
+            "position": { "x": 100, "y": 50 }
+          }
+        ],
+        "lights": [],
+        "sections": [
+          {
+            "id": "section-c",
+            "type": "section",
+            "name": "Section C",
+            "position": { "x": 200, "y": 100 },
+            "seats": [
+              {
+                "id": "seat-c1",
+                "type": "seat",
+                "label": "C1",
+                "position": { "x": 210, "y": 110 },
+                "seatType": "disabled",
+                "color": "#A9A9A9",
+                "price": 80
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "floor-3",
+        "type": "floor",
+        "name": "Balcony",
+        "index": 2,
+        "controlRoom": null,
+        "stage": null,
+        "doors": [],
+        "lights": [],
+        "sections": [
+          {
+            "id": "section-d",
+            "type": "section",
+            "name": "Section D",
+            "position": { "x": 100, "y": 50 },
+            "seats": [
+              {
+                "id": "seat-d1",
+                "type": "seat",
+                "label": "D1",
+                "position": { "x": 110, "y": 60 },
+                "seatType": "regular",
+                "color": "#87CEFA",
+                "price": 70
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

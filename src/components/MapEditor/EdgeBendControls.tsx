@@ -22,6 +22,7 @@ export const EdgeBendControls: FC<EdgeBendControlsProps> = ({
   setGroupEdgeBends,
 }) => {
   const { width, height } = el;
+
   return (
     <>
       {/* Top */}
@@ -33,36 +34,17 @@ export const EdgeBendControls: FC<EdgeBendControlsProps> = ({
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minY = -height;
-          const maxY = height;
-          const y = Math.min(Math.max(pos.y, minY), maxY);
+          const y = Math.min(Math.max(pos.y, -height), height);
           return { x: width / 2, y };
         }}
         onDragMove={(e) => {
           const y = e.target.y();
-          setGroupEdgeBends((prev) => ({ ...prev, top: y }));
-          e.target.x(el.width / 2);
-        }}
-      />
-
-      {/* Right */}
-      <Circle
-        key="bend-right"
-        x={width + groupEdgeBends.right}
-        y={height / 2}
-        radius={8}
-        fill="red"
-        draggable
-        dragBoundFunc={(pos) => {
-          const minX = width - width;
-          const maxX = width + width;
-          const x = Math.min(Math.max(pos.x, minX), maxX);
-          return { x, y: height / 2 };
-        }}
-        onDragMove={(e) => {
-          const x = e.target.x();
-          setGroupEdgeBends((prev) => ({ ...prev, right: x - el.width }));
-          e.target.y(el.height / 2); // Y sabitleniyor
+          setGroupEdgeBends((prev) => ({
+            ...prev,
+            top: y,
+            bottom: y,
+          }));
+          e.target.x(width / 2);
         }}
       />
 
@@ -75,15 +57,42 @@ export const EdgeBendControls: FC<EdgeBendControlsProps> = ({
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minY = height - height;
-          const maxY = height + height;
-          const y = Math.min(Math.max(pos.y, minY), maxY);
+          const y = Math.min(Math.max(pos.y, 0), height * 2);
           return { x: width / 2, y };
         }}
         onDragMove={(e) => {
           const y = e.target.y();
-          setGroupEdgeBends((prev) => ({ ...prev, bottom: y - height }));
-          e.target.x(width / 2); // X sabit
+          const val = y - height;
+          setGroupEdgeBends((prev) => ({
+            ...prev,
+            bottom: val,
+            top: val,
+          }));
+          e.target.x(width / 2);
+        }}
+      />
+
+      {/* Right */}
+      <Circle
+        key="bend-right"
+        x={width + groupEdgeBends.right}
+        y={height / 2}
+        radius={8}
+        fill="red"
+        draggable
+        dragBoundFunc={(pos) => {
+          const x = Math.min(Math.max(pos.x, 0), width * 2);
+          return { x, y: height / 2 };
+        }}
+        onDragMove={(e) => {
+          const x = e.target.x();
+          const val = x - width;
+          setGroupEdgeBends((prev) => ({
+            ...prev,
+            right: val,
+            left: val,
+          }));
+          e.target.y(height / 2);
         }}
       />
 
@@ -96,14 +105,16 @@ export const EdgeBendControls: FC<EdgeBendControlsProps> = ({
         fill="red"
         draggable
         dragBoundFunc={(pos) => {
-          const minX = -width;
-          const maxX = width;
-          const x = Math.min(Math.max(pos.x, minX), maxX);
+          const x = Math.min(Math.max(pos.x, -width), width);
           return { x, y: height / 2 };
         }}
         onDragMove={(e) => {
           const x = e.target.x();
-          setGroupEdgeBends((prev) => ({ ...prev, left: x }));
+          setGroupEdgeBends((prev) => ({
+            ...prev,
+            left: x,
+            right: x,
+          }));
           e.target.y(height / 2);
         }}
       />

@@ -1,37 +1,20 @@
-import React, { FC } from "react";
-import { ElementType } from "../types/element";
-import { Tools } from "./Tools";
-import { AddMultipleSeat } from "./AddMultipleSeat";
+"use client";
 
-export type LeftPanelToolsTypes = {
-  handleAddButtonClick: (type: ElementType) => void;
-  rows: number;
-  setRows: (value: number) => void;
-  cols: number;
-  setCols: (value: number) => void;
-  onConfirmAddSeats: (type: ElementType, rows: number, cols: number) => void;
+import React, { FC } from "react";
+import { ElementType, ToolType } from "@/src/types/element";
+import { Tools } from "./Tools";
+
+type LeftPanelToolsProps = {
+  setIsMultipleSeatDialogOpen: (isOpen: boolean) => void;
 };
 
-export const LeftPanelTools: FC<LeftPanelToolsTypes> = ({
-  handleAddButtonClick,
-  rows,
-  setRows,
-  cols,
-  setCols,
-  onConfirmAddSeats,
+export const LeftPanelTools: FC<LeftPanelToolsProps> = ({
+  setIsMultipleSeatDialogOpen,
 }) => {
   return (
-    <aside className="w-20 bg-white shahow p-4 border-r border-t border-gray-200 flex-shrink-0">
-      <h2 className="text-xl text-gray-800 font-semibold mb-4">Tools</h2>
-      <Tools handleAddButtonClick={handleAddButtonClick} />
-      <AddMultipleSeat
-        rows={rows}
-        setRows={setRows}
-        cols={cols}
-        setCols={setCols}
-        // addSeatsGrid={addSeatsGrid}
-        onConfirmAddSeats={onConfirmAddSeats}
-      />
+    <aside className="flex flex-col h-full bg-white shadow p-2 border-r border-gray-200 flex-shrink-0">
+      <h2 className="text-lg text-gray-800 font-semibold mb-2">Tools</h2>
+      <Tools setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen} />
     </aside>
   );
 };

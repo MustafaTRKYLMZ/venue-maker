@@ -1,10 +1,10 @@
 // components/PropertiesPanel.tsx
 import React, { useState, useEffect } from "react";
-import { MapElement } from "@/src/types/mapElement";
+import { BaseElement } from "@/src/types/baseElement";
 
 interface PropertiesPanelProps {
-  selectedElement: MapElement | null;
-  onUpdateElement: (updatedElement: MapElement) => void;
+  selectedElement: BaseElement | null;
+  onUpdateElement: (updatedElement: BaseElement) => void;
   onDeleteElement: (elementId: string) => void;
 }
 
@@ -14,7 +14,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onDeleteElement,
 }) => {
   const [currentProperties, setCurrentProperties] = useState<
-    Partial<MapElement>
+    Partial<BaseElement>
   >({});
 
   // Update internal state when selectedElement changes
