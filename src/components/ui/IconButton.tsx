@@ -1,6 +1,5 @@
 import React from "react";
 import { IconType } from "react-icons";
-import { Button } from "./Button";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { AppIcon } from "./AppIcon";
 import {
@@ -9,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ToolTip";
+import { Button } from "@/components/ui/button";
 
 interface IconButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,7 +33,7 @@ export const IconButton = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button {...props} variant="ghost" isSelected={isSelected}>
+          <Button {...props} variant="ghost">
             {isLoading ? (
               <span className="flex items-center space-x-2">
                 <LoadingSpinner size={20} color="text-white" />

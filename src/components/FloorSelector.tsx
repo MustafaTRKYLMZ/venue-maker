@@ -5,7 +5,7 @@ import { FaPlus } from "react-icons/fa";
 import { Floor } from "@/src/types/venue";
 import { IconButton } from "./ui/IconButton";
 import { ElementType, ToolType } from "../types/element";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface FloorSelectorProps {
   floors: Floor[];
@@ -52,8 +52,8 @@ export const FloorSelector: React.FC<FloorSelectorProps> = ({
         icon={<FaPlus />}
         tooltipText="Add Floor"
         onClick={() => handleFloor("floor")}
-        aria-label="Add Stage"
-        isSelected={true}
+        aria-label="Add Floor"
+        className="border border-blue-500 w-10 h-10"
       />
       <div className="flex flex-col-reverse gap-1 max-h-48 overflow-auto">
         {floors.map((floor) => (
@@ -61,7 +61,11 @@ export const FloorSelector: React.FC<FloorSelectorProps> = ({
             key={floor.id}
             onClick={() => onSelectFloor(floor.id)}
             aria-label={`Select Floor ${floor.index + 1}`}
-            isSelected={selectedFloorId === floor.id}
+            className={`w-full text-left ${
+              selectedFloorId === floor.id
+                ? "bg-orange-500 text-white hover:bg-orange-600"
+                : ""
+            }`}
           >
             {floor.index + 1}
           </Button>

@@ -25,10 +25,10 @@ export const Tools = ({
     selectedTool,
     setSelectedTool,
     history,
-    setHistory,
     historyPointer,
     setHistoryPointer,
     setVenue,
+    onSave,
   } = useMapEditor();
 
   const handleToolClick = (type: ElementType) => {
@@ -103,7 +103,7 @@ export const Tools = ({
           isSelected={selectedTool?.type === "door"}
         />
         <IconButton
-          icon={<FaTh size={28} />}
+          icon={<FaTh />}
           tooltipText="Add Multiple Seats"
           onClick={() => handleOpenMultipleSeatDialog("section")}
           aria-label="Add multiple seats"
@@ -118,7 +118,6 @@ export const Tools = ({
           onClick={handleUndo}
           disabled={historyPointer === 0}
           aria-label="Undo"
-          className="bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
         />
 
         {/* Redo Button */}
@@ -128,19 +127,17 @@ export const Tools = ({
           onClick={handleRedo}
           disabled={historyPointer === history.length - 1}
           aria-label="Redo"
-          className="bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
         />
 
         {/* Save Button */}
         <IconButton
           icon={<FaSave />}
           tooltipText="Save"
-          onClick={() => {}}
+          onClick={onSave}
           disabled={isSaving}
           isLoading={isSaving}
           loadingText="Saving..."
           aria-label="Save map"
-          className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
         />
       </div>
     </div>

@@ -36,7 +36,8 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
   const stageRef = useRef<any>(null);
   const { rotation, setRotation, zoom, isDragging, setIsDragging } =
     useCanvasEditor();
-  const { venue, setVenue, selectedFloorId } = useMapEditor();
+  const { venue, setVenue, selectedFloorId, setSelectedElement } =
+    useMapEditor();
   const addElement = useAddElement(venue, setVenue, selectedFloorId || "");
   const { width, height } = useWindowSize();
 
@@ -95,6 +96,13 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
         scaleX={scaleFactor}
         scaleY={scaleFactor}
         onClick={onCanvasClick}
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+          const clickedOnEmpty = e.target === e.target.getStage();
+          if (clickedOnEmpty) {
+            setSelectedElement(null);
+          }
+        }}
       >
         <Layer>{renderGrid(width, height)}</Layer>
         <Layer>

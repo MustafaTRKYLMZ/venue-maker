@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LeftPanelTools } from "@/src/components/LeftPanelTools";
 import { useAddFloor } from "@/src/hooks/useAddFloor";
 import { MapEditorHeader } from "@/src/components/MapEditorHeader";
 import { PropertiesPanel } from "@/src/components/PropertiesPanel";
@@ -19,7 +18,6 @@ export function MapEditorContent() {
     selectedFloorId,
     setSelectedFloorId,
     selectedElement,
-    setSelectedElement,
   } = useMapEditor();
 
   const [rows, setRows] = useState<number>(5);
@@ -91,12 +89,8 @@ export function MapEditorContent() {
         {/* Right panel */}
         {/* Properties panel */}
         {selectedElement && (
-          <aside className="w-64 bg-gray-50 border-l border-gray-300 p-3">
-            <PropertiesPanel
-              selectedElement={null}
-              onUpdateElement={() => {}}
-              onDeleteElement={() => {}}
-            />
+          <aside className="w-64 border-l border-t bg-white border-gray-300">
+            <PropertiesPanel />
           </aside>
         )}
 

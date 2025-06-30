@@ -1,232 +1,117 @@
-// components/PropertiesPanel.tsx
-import React, { useState, useEffect } from "react";
-import { BaseElement } from "@/src/types/baseElement";
+import { useState, useEffect } from "react";
+import { FaChevronLeft } from "react-icons/fa";
+import { useMapEditor } from "../context/MapEditorContext";
+import { SelectedElement } from "../types/element";
+import { IconButton } from "./ui/IconButton";
+import { DynamicForm } from "./ui/DynamicForm";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
-interface PropertiesPanelProps {
-  selectedElement: BaseElement | null;
-  onUpdateElement: (updatedElement: BaseElement) => void;
-  onDeleteElement: (elementId: string) => void;
-}
-
-export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
-  selectedElement,
-  onUpdateElement,
-  onDeleteElement,
-}) => {
-  if (!selectedElement) {
-    return;
-  }
+export const PropertiesPanel = () => {
   const [currentProperties, setCurrentProperties] = useState<
-    Partial<BaseElement>
+    Partial<SelectedElement>
   >({});
+  const {
+    selectedElement,
+    setSelectedElement,
+    updateElementById,
+    deleteElementById,
+  } = useMapEditor();
 
-  // Update internal state when selectedElement changes
   useEffect(() => {
-    if (selectedElement) {
-      setCurrentProperties(selectedElement);
-    } else {
-      setCurrentProperties({});
-    }
+    setCurrentProperties(selectedElement || {});
   }, [selectedElement]);
 
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCurrentProperties((prev) => ({
-      ...prev,
-      [name]:
-        name === "x" ||
-        name === "y" ||
-        name === "width" ||
-        name === "height" ||
-        name === "fontSize" ||
-        name === "strokeWidth"
-          ? parseFloat(value) || 0 // Convert to number, default to 0 if invalid
-          : value,
-    }));
+  if (!selectedElement) return null;
+
+  const handleClosePanel = () => setSelectedElement(null);
+
+  const handleChange = (key: string, value: any) => {
+    const keys = key.split(".");
+    setCurrentProperties((prev) => {
+      const updated = { ...prev };
+      let temp: any = updated;
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        if (!temp[k]) temp[k] = {};
+        temp = temp[k];
+      }
+      temp[keys[keys.length - 1]] = value;
+      return updated;
+    });
   };
 
-  // Apply changes to the selected element
   const handleApplyChanges = () => {
     if (selectedElement && Object.keys(currentProperties).length > 0) {
-      onUpdateElement({ ...selectedElement, ...currentProperties });
+      const updatedElement = {
+        ...selectedElement,
+        ...currentProperties,
+      };
+      updateElementById(updatedElement as SelectedElement);
+      setSelectedElement(null);
+      toast.success("Properties updated successfully");
     }
   };
 
-  // Delete the selected element
   const handleDelete = () => {
     if (selectedElement) {
-      onDeleteElement(selectedElement.id);
+      deleteElementById(selectedElement.id);
+      setSelectedElement(null);
+      toast.success("Element deleted successfully");
     }
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Properties</h2>
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">ID:</label>
-          <input
-            type="text"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-100"
-            value={selectedElement.id}
-            readOnly
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Type:
-          </label>
-          <input
-            type="text"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 bg-gray-100"
-            value={selectedElement.type}
-            readOnly
-          />
-        </div>
+    <div className="fixed right-0 top-32 h-full w-80 bg-white shadow-lg border-l z-0 overflow-y-auto p-4 space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Properties</h2>
+        <IconButton
+          icon={<FaChevronLeft size={20} />}
+          tooltipText="Back"
+          onClick={handleClosePanel}
+        />
+      </div>
 
-        {/* Common properties for all types */}
-        {typeof currentProperties.position?.x === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              X:
-            </label>
-            <input
-              type="number"
-              name="x"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.position.x}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {typeof currentProperties.position?.y === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Y:
-            </label>
-            <input
-              type="number"
-              name="y"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.position.y}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {typeof currentProperties.width === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Width:
-            </label>
-            <input
-              type="number"
-              name="width"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.width}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {typeof currentProperties.height === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Height:
-            </label>
-            <input
-              type="number"
-              name="height"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.height}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {currentProperties.text !== undefined && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Text:
-            </label>
-            <input
-              type="text"
-              name="text"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.text}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {typeof currentProperties.fontSize === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Font Size:
-            </label>
-            <input
-              type="number"
-              name="fontSize"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.fontSize}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {currentProperties.fill !== undefined && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Fill Color:
-            </label>
-            <input
-              type="color"
-              name="fill"
-              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.fill}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {currentProperties.stroke !== undefined && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Stroke Color:
-            </label>
-            <input
-              type="color"
-              name="stroke"
-              className="mt-1 block w-full h-8 rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.stroke}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-        {typeof currentProperties.strokeWidth === "number" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Stroke Width:
-            </label>
-            <input
-              type="number"
-              name="strokeWidth"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.strokeWidth}
-              onChange={handleChange}
-            />
-          </div>
-        )}
+      {/* Form */}
+      <DynamicForm
+        data={currentProperties}
+        hiddenKeys={["id", "type"]}
+        onChange={handleChange}
+      />
 
-        <div className="mt-4 space-y-2">
-          <button
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-            onClick={handleApplyChanges}
-          >
-            Apply Changes
-          </button>
-          <button
-            className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-            onClick={handleDelete}
-          >
-            Delete Element
-          </button>
-        </div>
+      <div className="flex gap-2 mt-4">
+        <Button onClick={handleApplyChanges}>Apply</Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button className="bg-red-500 hover:bg-red-700">Delete</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                element.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

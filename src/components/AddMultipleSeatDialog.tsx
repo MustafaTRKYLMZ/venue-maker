@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ElementType } from "../types/element";
-import { useMapEditor } from "../context/MapEditorContext";
-import { Button } from "./ui/Button";
 import { IoMdClose } from "react-icons/io";
+import { Button } from "@/components/ui/button";
 
 type AddMultipleSeatDialogProps = {
   rows: number;

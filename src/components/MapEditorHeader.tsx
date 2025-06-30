@@ -16,16 +16,11 @@ export type MapEditorHeaderProps = {
 
 export const MapEditorHeader = ({
   venueName,
-  handleUndo,
-  historyPointer,
-  historyLength,
-  handleRedo,
-  handleSaveMap,
-  isSaving,
+
   setIsMultipleSeatDialogOpen,
 }: MapEditorHeaderProps) => {
   return (
-    <header className="flex flex-col flex-start w-full bg-white shadow flex justify-between items-start">
+    <header className="flex flex-col flex-start sticky top-0 z-50 w-full bg-white shadow flex justify-between items-start">
       <div className="flex flex-row justify-between items-center w-full p-2 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800">{venueName}</h1>
       </div>
