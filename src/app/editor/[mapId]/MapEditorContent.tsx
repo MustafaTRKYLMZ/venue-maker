@@ -18,6 +18,8 @@ export function MapEditorContent() {
     setSelectedTool,
     selectedFloorId,
     setSelectedFloorId,
+    selectedElement,
+    setSelectedElement,
   } = useMapEditor();
 
   const [rows, setRows] = useState<number>(5);
@@ -51,6 +53,7 @@ export function MapEditorContent() {
     <div className="flex flex-col h-screen">
       {/* Header */}
       <MapEditorHeader
+        setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
         venueName={venue.name}
         handleUndo={() => {}}
         handleRedo={() => {}}
@@ -60,13 +63,13 @@ export function MapEditorContent() {
       />
 
       {/* Main content */}
-      <div className="flex flex-grow overflow-visible">
+      <div className="flex flex-row overflow-visible">
         {/* Left panel */}
-        <aside className="w-40 bg-gray-100 border-r border-gray-300 overflow-auto p-1 z-10">
+        {/* <aside className="flex flex-col w-40 bg-gray-100 border-r border-gray-300 overflow-auto p-1 z-10">
           <LeftPanelTools
             setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
           />
-        </aside>
+        </aside> */}
 
         {/* Canvas area */}
         <main className="relative flex-grow bg-white rounded-md border border-gray-300 overflow-auto flex flex-col">
@@ -86,13 +89,16 @@ export function MapEditorContent() {
         </main>
 
         {/* Right panel */}
-        <aside className="w-64 bg-gray-50 border-l border-gray-300 p-3">
-          <PropertiesPanel
-            selectedElement={null}
-            onUpdateElement={() => {}}
-            onDeleteElement={() => {}}
-          />
-        </aside>
+        {/* Properties panel */}
+        {selectedElement && (
+          <aside className="w-64 bg-gray-50 border-l border-gray-300 p-3">
+            <PropertiesPanel
+              selectedElement={null}
+              onUpdateElement={() => {}}
+              onDeleteElement={() => {}}
+            />
+          </aside>
+        )}
 
         {/* Add Multiple Seat Dialog */}
         {isMultipleSeatDialogOpen && (

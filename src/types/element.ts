@@ -1,18 +1,19 @@
+import { ControlRoom, Door, Light, Stage, Wall } from "./elements";
+import { Section, Seat, Venue } from "./venue";
+
 export type ElementType =
   | "seat"
   | "stage"
   | "text"
   | "wall"
   | "group"
-  | "multiple_seat"
   | "door"
   | "section"
   | "floor"
   | "venue"
   | "light"
   | "row"
-  | "controlRoom"
-  | "map_element";
+  | "controlRoom";
 
 export type ToolType =
   | { type: "floor" }
@@ -26,3 +27,13 @@ export type ToolType =
   | { type: "controlRoom" }
   | { type: "text" }
   | null;
+
+export type SelectedElement =
+  | Venue
+  | Stage
+  | ControlRoom
+  | Door
+  | Wall
+  | Light
+  | Section
+  | Seat;

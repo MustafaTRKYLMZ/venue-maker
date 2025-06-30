@@ -30,7 +30,7 @@ export const Button = React.forwardRef<
     };
 
     const selectedVariants = {
-      primary: "bg-blue-800 text-white w-full",
+      primary: "bg-orange-800 text-white w-full",
       secondary: "bg-gray-400 text-gray-900",
       ghost: "bg-transparent hover:bg-gray-100 text-gray-700 p-0",
     };

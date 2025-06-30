@@ -3,10 +3,16 @@ import React from "react";
 import { Circle, Group, Rect, Text } from "react-konva";
 import { useMapEditor } from "../context/MapEditorContext";
 import { ElementType } from "../types/element";
-import { createRowsWithSeats } from "../utils/createRowsWithSeats";
+import { Venue } from "../types/venue";
 
 export const CanvasElementsRenderer = () => {
-  const { venue, selectedFloorId, setVenue } = useMapEditor();
+  const {
+    venue,
+    selectedFloorId,
+    setVenue,
+    setSelectedElement,
+    selectedElement,
+  } = useMapEditor();
   if (!selectedFloorId) return null;
 
   const floor = venue.floors.find((f) => f.id === selectedFloorId);
@@ -104,12 +110,57 @@ export const CanvasElementsRenderer = () => {
     setVenue({ ...venue, floors: updatedFloors });
   };
 
+  const handleElementClick = (type: ElementType, id: string) => {
+    console.log(`${type} clicked`, id);
+    // Here you can handle the click event for the element
+    const floor = venue.floors.find((floor) => floor.id === selectedFloorId);
+    if (!floor) return;
+
+    const elementArray = (() => {
+      switch (type) {
+        case "stage":
+          return floor.stage ? [floor.stage] : [];
+        case "controlRoom":
+          return floor.controlRoom ? [floor.controlRoom] : [];
+        case "door":
+          return floor.doors;
+        case "wall":
+          return floor.walls;
+        case "light":
+          return floor.lights;
+        case "section":
+          return floor.sections;
+        case "seat":
+          return floor.sections.flatMap((section) =>
+            section.rows.flatMap((row) => row.seats),
+          );
+        default:
+          return [];
+      }
+    })();
+
+    const selectedElement = elementArray.find((element) => element.id === id);
+    if (!selectedElement) return;
+
+    if (
+      type === "stage" ||
+      type === "controlRoom" ||
+      type === "door" ||
+      type === "wall" ||
+      type === "light" ||
+      type === "section" ||
+      type === "seat"
+    ) {
+      setSelectedElement(selectedElement);
+    }
+  };
+  console.log("Selected Element:", selectedElement);
   return (
     <>
       {venue.floors.map((floor) => {
         const isSelected = floor.id === selectedFloorId;
         const opacity = isSelected ? 1 : 0.1;
-        const listening = isSelected; // interaktifliği kapatmak için
+        const listening = isSelected;
         return (
           <Group key={floor.id} opacity={opacity} listening={listening}>
             {/* STAGE */}
@@ -119,6 +170,11 @@ export const CanvasElementsRenderer = () => {
                 x={floor.stage.position.x}
                 y={floor.stage.position.y}
                 draggable={isSelected && floor.stage.draggable}
+                onClick={() => {
+                  if (isSelected && floor.stage) {
+                    handleElementClick("stage", floor.stage.id);
+                  }
+                }}
                 onDragEnd={(e) => {
                   if (isSelected) {
                     handleDragEnd(
@@ -164,6 +220,12 @@ export const CanvasElementsRenderer = () => {
                       e.target.x(),
                       e.target.y(),
                     );
+                  }
+                }}
+                onClick={(e) => {
+                  e.cancelBubble = true; // Prevent event bubbling
+                  if (floor.controlRoom) {
+                    console.log("Control Room clicked", floor.controlRoom.id);
                   }
                 }}
               >

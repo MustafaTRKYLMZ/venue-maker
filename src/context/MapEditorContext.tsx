@@ -1,16 +1,24 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Venue } from "@/src/types/venue";
-import { ToolType } from "@/src/types/element";
+import { SelectedElement, ToolType } from "@/src/types/element";
 
 type MapEditorContextType = {
   venue: Venue;
-  setVenue: React.Dispatch<React.SetStateAction<Venue>>;
+  setVenue: (newVenue: Venue) => void;
   selectedTool: ToolType | null;
   setSelectedTool: React.Dispatch<React.SetStateAction<ToolType | null>>;
   selectedFloorId: string | null;
   setSelectedFloorId: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedElement: SelectedElement | null;
+  setSelectedElement: React.Dispatch<
+    React.SetStateAction<SelectedElement | null>
+  >;
+  history: Venue[];
+  setHistory: React.Dispatch<React.SetStateAction<Venue[]>>;
+  historyPointer: number;
+  setHistoryPointer: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const MapEditorContext = createContext<MapEditorContextType | undefined>(
@@ -54,20 +62,48 @@ export const MapEditorProvider = ({
     image: "https://example.com/venue-image.jpg",
     capacity: 5000,
   });
+  const [selectedElement, setSelectedElement] =
+    useState<SelectedElement | null>(null);
+  const [history, setHistory] = useState<Venue[]>([]);
+  const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [selectedFloorId, setSelectedFloorId] = useState<string | null>(
     venue.floors.length > 0 ? venue.floors[0].id : "1",
   );
+
+  const pushToHistory = (newVenue: Venue) => {
+    const updatedHistory = history.slice(0, historyPointer + 1);
+    updatedHistory.push(newVenue);
+    setHistory(updatedHistory);
+    setHistoryPointer(updatedHistory.length - 1);
+  };
+  const updateVenue = (newVenue: Venue) => {
+    setVenue(newVenue);
+    pushToHistory(newVenue);
+  };
+
+  useEffect(() => {
+    if (venue && history.length === 0) {
+      setHistory([venue]);
+      setHistoryPointer(0);
+    }
+  }, [venue]);
   return (
     <MapEditorContext.Provider
       value={{
         venue,
-        setVenue,
+        setVenue: (newVenue: Venue) => updateVenue(newVenue),
         selectedTool,
         setSelectedTool,
         selectedFloorId,
         setSelectedFloorId,
+        selectedElement,
+        setSelectedElement,
+        history,
+        historyPointer,
+        setHistoryPointer,
+        setHistory,
       }}
     >
       {children}

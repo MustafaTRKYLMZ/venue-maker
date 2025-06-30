@@ -17,6 +17,7 @@ interface IconButtonProps
   isLoading?: boolean;
   loadingText?: string;
   isSelected?: boolean;
+  children?: React.ReactNode;
 }
 
 export const IconButton = ({

@@ -13,6 +13,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onUpdateElement,
   onDeleteElement,
 }) => {
+  if (!selectedElement) {
+    return;
+  }
   const [currentProperties, setCurrentProperties] = useState<
     Partial<BaseElement>
   >({});
@@ -57,15 +60,6 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     }
   };
 
-  if (!selectedElement) {
-    return (
-      <div className="p-4 text-gray-600">
-        <h2 className="text-xl font-semibold mb-4">Properties</h2>
-        <p>Select an element to view its properties.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Properties</h2>
@@ -92,7 +86,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         </div>
 
         {/* Common properties for all types */}
-        {typeof currentProperties.x === "number" && (
+        {typeof currentProperties.position?.x === "number" && (
           <div>
             <label className="block text-sm font-medium text-gray-700">
               X:
@@ -101,12 +95,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               type="number"
               name="x"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.x}
+              value={currentProperties.position.x}
               onChange={handleChange}
             />
           </div>
         )}
-        {typeof currentProperties.y === "number" && (
+        {typeof currentProperties.position?.y === "number" && (
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Y:
@@ -115,7 +109,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               type="number"
               name="y"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              value={currentProperties.y}
+              value={currentProperties.position.y}
               onChange={handleChange}
             />
           </div>
