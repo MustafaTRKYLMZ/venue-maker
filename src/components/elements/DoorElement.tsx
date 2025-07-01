@@ -1,13 +1,18 @@
-import { Group, Rect, Line, Circle } from "react-konva";
+import { Rect, Line, Circle } from "react-konva";
 import { Door } from "@/src/types/elements";
-import { KonvaEventObject } from "konva/lib/Node";
 import { useState } from "react";
+import { GroupWrapper } from "../common/GroupWrapper";
 
 interface Props {
   door: Door;
   isSelected: boolean;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
+  onTransformEnd?: (props: {
+    width?: number;
+    height?: number;
+    rotation?: number;
+  }) => void;
 }
 
 export const DoorElement = ({
@@ -15,26 +20,21 @@ export const DoorElement = ({
   isSelected,
   onClick,
   onDragEnd,
+  onTransformEnd,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
   return (
-    <Group
-      x={door.position.x}
-      y={door.position.y}
-      draggable={isSelected && door.draggable}
-      onClick={onClick}
-      onDragEnd={(e) => onDragEnd(e.target.x(), e.target.y())}
-      onMouseEnter={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "pointer");
-        setIsHover(true);
-      }}
-      onMouseLeave={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "default");
-        setIsHover(false);
-      }}
+    <GroupWrapper
+      isSelected={isSelected}
+      onSelect={onClick}
+      onDragEnd={onDragEnd}
+      onTransformEnd={onTransformEnd ?? (() => {})}
+      draggable={door.draggable}
+      position={door.position}
+      rotation={door.rotation ?? 0}
+      elementId={door.id}
     >
-      {/* Door Panel */}
       <Rect
         width={door.width}
         height={door.height}
@@ -45,9 +45,9 @@ export const DoorElement = ({
         shadowColor="rgba(0,0,0,0.2)"
         shadowBlur={4}
         shadowOffset={{ x: 2, y: 2 }}
+        onMouseEnter={() => setIsHover(true)}
+        onMouseLeave={() => setIsHover(false)}
       />
-
-      {/* Handle (circular) */}
       <Circle
         x={door.width - 10}
         y={door.height / 2}
@@ -56,14 +56,12 @@ export const DoorElement = ({
         stroke="black"
         strokeWidth={1}
       />
-
-      {/* Hinge line (optional visual) */}
       <Line
         points={[5, 0, 5, door.height]}
         stroke="darkgray"
         strokeWidth={1}
         dash={[4, 2]}
       />
-    </Group>
+    </GroupWrapper>
   );
 };

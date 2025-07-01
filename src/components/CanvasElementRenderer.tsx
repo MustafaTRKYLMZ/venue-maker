@@ -281,6 +281,14 @@ export const CanvasElementsRenderer = () => {
                   floor.controlRoom &&
                   handleDragEnd("controlRoom", floor.controlRoom!.id, x, y)
                 }
+                onTransformEnd={(newProps) =>
+                  floor.controlRoom &&
+                  handleTransformEnd(
+                    "controlRoom",
+                    floor.controlRoom.id,
+                    newProps,
+                  )
+                }
               />
             )}
 
@@ -292,6 +300,9 @@ export const CanvasElementsRenderer = () => {
                 isSelected={isSelected}
                 onClick={() => handleElementClick("door", door.id)}
                 onDragEnd={(x, y) => handleDragEnd("door", door.id, x, y)}
+                onTransformEnd={(newProps) =>
+                  door && handleTransformEnd("door", door.id, newProps)
+                }
               />
             ))}
 
@@ -300,6 +311,9 @@ export const CanvasElementsRenderer = () => {
               <WallElement
                 key={wall.id}
                 wall={wall}
+                onTransformEnd={(newProps) =>
+                  wall && handleTransformEnd("wall", wall.id, newProps)
+                }
                 isSelected={isSelected}
                 onClick={() => handleElementClick("wall", wall.id)}
                 onDragEnd={(x, y) => handleDragEnd("wall", wall.id, x, y)}
@@ -314,6 +328,9 @@ export const CanvasElementsRenderer = () => {
                 isSelected={isSelected}
                 onClick={() => handleElementClick("light", light.id)}
                 onDragEnd={(x, y) => handleDragEnd("light", light.id, x, y)}
+                onTransformEnd={(newProps) =>
+                  light && handleTransformEnd("light", light.id, newProps)
+                }
               />
             ))}
 
@@ -324,15 +341,11 @@ export const CanvasElementsRenderer = () => {
                 section={section}
                 isSelected={isSelected}
                 onClick={() => handleElementClick("section", section.id)}
-                onDragEnd={(e) =>
-                  handleDragEnd(
-                    "section",
-                    section.id,
-                    e.target.x(),
-                    e.target.y(),
-                  )
-                }
+                onDragEnd={(x, y) => handleDragEnd("section", section.id, x, y)}
                 onSeatClick={(seatId) => handleElementClick("seat", seatId)}
+                onTransformEnd={(newProps) =>
+                  section && handleTransformEnd("section", section.id, newProps)
+                }
               />
             ))}
           </Group>

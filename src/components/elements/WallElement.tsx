@@ -1,13 +1,18 @@
 import { Group, Rect, Line } from "react-konva";
 import { Wall } from "@/src/types/elements";
-import { KonvaEventObject } from "konva/lib/Node";
 import { useState } from "react";
+import { GroupWrapper } from "../common/GroupWrapper";
 
 interface Props {
   wall: Wall;
   isSelected: boolean;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
+  onTransformEnd: (props: {
+    width?: number;
+    height?: number;
+    rotation?: number;
+  }) => void;
 }
 
 export const WallElement = ({
@@ -15,28 +20,21 @@ export const WallElement = ({
   isSelected,
   onClick,
   onDragEnd,
+  onTransformEnd,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
   return (
-    <Group
-      x={wall.position.x}
-      y={wall.position.y}
-      draggable={isSelected && wall.draggable}
-      onClick={onClick}
-      onDragEnd={(e: KonvaEventObject<Event>) =>
-        onDragEnd(e.target.x(), e.target.y())
-      }
-      onMouseEnter={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "pointer");
-        setIsHover(true);
-      }}
-      onMouseLeave={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "default");
-        setIsHover(false);
-      }}
+    <GroupWrapper
+      isSelected={isSelected}
+      onSelect={onClick}
+      onDragEnd={onDragEnd}
+      onTransformEnd={onTransformEnd}
+      draggable={wall.draggable}
+      position={wall.position}
+      rotation={wall.rotation ?? 0}
+      elementId={wall.id}
     >
-      {/* Wall base with subtle gradient */}
       <Rect
         width={wall.width}
         height={wall.height}
@@ -49,9 +47,10 @@ export const WallElement = ({
         shadowColor="rgba(0,0,0,0.15)"
         shadowBlur={6}
         shadowOffset={{ x: 1, y: 2 }}
+        onMouseEnter={() => setIsHover(true)}
+        onMouseLeave={() => setIsHover(false)}
       />
 
-      {/* Optional texture lines */}
       {[...Array(5)].map((_, i) => (
         <Line
           key={i}
@@ -61,6 +60,6 @@ export const WallElement = ({
           dash={[2, 4]}
         />
       ))}
-    </Group>
+    </GroupWrapper>
   );
 };

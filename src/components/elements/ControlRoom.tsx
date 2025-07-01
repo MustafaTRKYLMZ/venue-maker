@@ -1,14 +1,18 @@
-// components/canvas/elements/ControlRoomElement.tsx
-import { Group, Rect, Text } from "react-konva";
+import { Rect, Text } from "react-konva";
 import { ControlRoom } from "@/src/types/elements";
-import { KonvaEventObject } from "konva/lib/Node";
 import { useState } from "react";
+import { GroupWrapper } from "../common/GroupWrapper";
 
 interface Props {
   controlRoom: ControlRoom;
   isSelected: boolean;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
+  onTransformEnd: (props: {
+    width?: number;
+    height?: number;
+    rotation?: number;
+  }) => void;
 }
 
 export const ControlRoomElement = ({
@@ -16,30 +20,28 @@ export const ControlRoomElement = ({
   isSelected,
   onClick,
   onDragEnd,
+  onTransformEnd,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
   return (
-    <Group
-      x={controlRoom.position.x}
-      y={controlRoom.position.y}
-      draggable={isSelected && controlRoom.draggable}
-      onClick={onClick}
-      onDragEnd={(e) => onDragEnd(e.target.x(), e.target.y())}
-      onMouseEnter={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "pointer");
-        setIsHover(true);
-      }}
-      onMouseLeave={(e) => {
-        e.target.getStage()?.container().style.setProperty("cursor", "default");
-        setIsHover(false);
-      }}
+    <GroupWrapper
+      isSelected={isSelected}
+      onSelect={onClick}
+      onDragEnd={onDragEnd}
+      onTransformEnd={onTransformEnd}
+      draggable={controlRoom.draggable}
+      position={controlRoom.position}
+      rotation={controlRoom.rotation ?? 0}
+      elementId={controlRoom.id}
     >
       <Rect
         width={controlRoom.width}
         height={controlRoom.height}
         fill={isHover ? "#9b59b6" : controlRoom.fill}
         stroke="purple"
+        onMouseEnter={() => setIsHover(true)}
+        onMouseLeave={() => setIsHover(false)}
       />
       <Text
         text={controlRoom.label}
@@ -51,6 +53,6 @@ export const ControlRoomElement = ({
         }
         y={controlRoom.height / 2 - controlRoom.fontSize / 2}
       />
-    </Group>
+    </GroupWrapper>
   );
 };
