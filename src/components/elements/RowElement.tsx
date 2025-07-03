@@ -9,7 +9,7 @@ interface Props {
 
 export const RowElement = ({ row, onSeatClick }: Props) => {
   return (
-    <Group x={row.position.x} y={row.position.y}>
+    <Group x={row.position.x} y={row.position.y} rotation={row.rotation}>
       {row.seats.map((seat) => (
         <SeatElement key={seat.id} seat={seat} onClick={onSeatClick} />
       ))}

@@ -5,7 +5,7 @@ import { GroupWrapper } from "../common/GroupWrapper";
 
 interface Props {
   wall: Wall;
-  isSelected: boolean;
+  isParentSelected: boolean;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (props: {
@@ -17,7 +17,7 @@ interface Props {
 
 export const WallElement = ({
   wall,
-  isSelected,
+  isParentSelected,
   onClick,
   onDragEnd,
   onTransformEnd,
@@ -26,7 +26,7 @@ export const WallElement = ({
 
   return (
     <GroupWrapper
-      isSelected={isSelected}
+      isSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={onTransformEnd}

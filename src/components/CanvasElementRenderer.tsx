@@ -3,24 +3,18 @@ import React from "react";
 import { Circle, Group, Rect, Text } from "react-konva";
 import { useMapEditor } from "../context/MapEditorContext";
 import { ElementType } from "../types/element";
-import { Venue } from "../types/venue";
 import { StageElement } from "./elements/StageElement";
 import { ControlRoomElement } from "./elements/ControlRoom";
 import { DoorElement } from "./elements/DoorElement";
 import { LightElement } from "./elements/LightElement";
 import { WallElement } from "./elements/WallElement";
 import { SectionElement } from "./elements/SectionElement";
+import { Position } from "../types/baseElement";
 
 export const CanvasElementsRenderer = () => {
-  const {
-    venue,
-    selectedFloorId,
-    setVenue,
-    setSelectedElement,
-    selectedElement,
-  } = useMapEditor();
+  const { venue, selectedFloorId, setVenue, setSelectedElement } =
+    useMapEditor();
   if (!selectedFloorId) return null;
-
   const floor = venue.floors.find((f) => f.id === selectedFloorId);
   if (!floor) return null;
 
@@ -160,12 +154,16 @@ export const CanvasElementsRenderer = () => {
       setSelectedElement(selectedElement);
     }
   };
-  console.log("Selected Element:", selectedElement);
 
   const handleTransformEnd = (
     type: ElementType,
     id: string,
-    newProps: { width?: number; height?: number; rotation?: number },
+    newProps: {
+      width?: number;
+      height?: number;
+      rotation?: number;
+      position?: Position;
+    },
   ) => {
     if (!selectedFloorId) return;
 
@@ -174,7 +172,10 @@ export const CanvasElementsRenderer = () => {
 
       const updateProps = (element: any) => ({
         ...element,
-        ...newProps,
+        width: newProps.width ?? element.width,
+        height: newProps.height ?? element.height,
+        rotation: newProps.rotation ?? element.rotation,
+        position: newProps.position ?? element.position,
       });
 
       switch (type) {
@@ -247,17 +248,19 @@ export const CanvasElementsRenderer = () => {
   return (
     <>
       {venue.floors.map((floor) => {
-        const isSelected = floor.id === selectedFloorId;
-        const opacity = isSelected ? 1 : 0.1;
-        const listening = isSelected;
+        const isParentSelected = floor.id === selectedFloorId;
+        const opacity = isParentSelected ? 1 : 0.1;
+        const listening = isParentSelected;
         return (
           <Group key={floor.id} opacity={opacity} listening={listening}>
             {/* STAGE */}
             {floor.stage && (
               <StageElement
                 stage={floor.stage}
-                isSelected={isSelected}
-                onSelect={() => handleElementClick("stage", floor.stage!.id)}
+                isParentSelected={isParentSelected}
+                onSelect={() => {
+                  handleElementClick("stage", floor.stage!.id);
+                }}
                 onDragEnd={(x: number, y: number) =>
                   handleDragEnd("stage", floor.stage!.id, x, y)
                 }
@@ -272,7 +275,7 @@ export const CanvasElementsRenderer = () => {
             {floor.controlRoom && (
               <ControlRoomElement
                 controlRoom={floor.controlRoom}
-                isSelected={isSelected}
+                isParentSelected={isParentSelected}
                 onClick={() =>
                   floor.controlRoom &&
                   handleElementClick("controlRoom", floor.controlRoom.id)
@@ -297,7 +300,7 @@ export const CanvasElementsRenderer = () => {
               <DoorElement
                 key={door.id}
                 door={door}
-                isSelected={isSelected}
+                isParentSelected={isParentSelected}
                 onClick={() => handleElementClick("door", door.id)}
                 onDragEnd={(x, y) => handleDragEnd("door", door.id, x, y)}
                 onTransformEnd={(newProps) =>
@@ -314,7 +317,7 @@ export const CanvasElementsRenderer = () => {
                 onTransformEnd={(newProps) =>
                   wall && handleTransformEnd("wall", wall.id, newProps)
                 }
-                isSelected={isSelected}
+                isParentSelected={isParentSelected}
                 onClick={() => handleElementClick("wall", wall.id)}
                 onDragEnd={(x, y) => handleDragEnd("wall", wall.id, x, y)}
               />
@@ -325,7 +328,7 @@ export const CanvasElementsRenderer = () => {
               <LightElement
                 key={light.id}
                 light={light}
-                isSelected={isSelected}
+                isParentSelected={isParentSelected}
                 onClick={() => handleElementClick("light", light.id)}
                 onDragEnd={(x, y) => handleDragEnd("light", light.id, x, y)}
                 onTransformEnd={(newProps) =>
@@ -339,7 +342,7 @@ export const CanvasElementsRenderer = () => {
               <SectionElement
                 key={section.id}
                 section={section}
-                isSelected={isSelected}
+                isParentSelected={isParentSelected}
                 onClick={() => handleElementClick("section", section.id)}
                 onDragEnd={(x, y) => handleDragEnd("section", section.id, x, y)}
                 onSeatClick={(seatId) => handleElementClick("seat", seatId)}

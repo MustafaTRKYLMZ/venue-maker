@@ -8,7 +8,7 @@ import Konva from "konva";
 
 interface Props {
   section: Section;
-  isSelected: boolean;
+  isParentSelected: boolean;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
   onSeatClick: (seatId: string) => void;
@@ -21,7 +21,7 @@ interface Props {
 
 export const SectionElement = ({
   section,
-  isSelected,
+  isParentSelected,
   onClick,
   onDragEnd,
   onSeatClick,
@@ -31,13 +31,13 @@ export const SectionElement = ({
   const shapeRef = useRef<Konva.Group>(null);
 
   useEffect(() => {
-    if (isSelected && shapeRef.current) {
+    if (isParentSelected && shapeRef.current) {
       shapeRef.current.getLayer()?.batchDraw();
     }
-  }, [isSelected]);
+  }, [isParentSelected]);
   return (
     <GroupWrapper
-      isSelected={isSelected}
+      isSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={() => {
@@ -60,7 +60,7 @@ export const SectionElement = ({
       rotation={section.rotation ?? 0}
       elementId={section.id}
     >
-      <Rect
+      {/* <Rect
         width={section.width}
         height={section.height}
         fill={isHover ? "#f1f5f9" : "#f8fafc"}
@@ -70,33 +70,33 @@ export const SectionElement = ({
         cornerRadius={8}
         // shadowColor="black"
         shadowBlur={5}
-      />
-      <Group>
+      /> */}
+      {/* <Group>
         {/* Top border */}
-        <Line
+      {/* <Line
           points={[0, 0, section.width, 0]}
           stroke="#cbd5e1"
           strokeWidth={2}
-        />
-        {/* Right border */}
-        <Line
+        /> */}
+      {/* Right border */}
+      {/* <Line
           points={[section.width, 0, section.width, section.height]}
           stroke="#cbd5e1"
           strokeWidth={2}
-        />
-        {/* Bottom border */}
-        <Line
+        /> */}
+      {/* Bottom border */}
+      {/* <Line
           points={[0, section.height, section.width, section.height]}
           stroke="#cbd5e1"
           strokeWidth={2}
-        />
-        {/* Left border */}
-        <Line
+        /> */}
+      {/* Left border */}
+      {/* <Line
           points={[0, 0, 0, section.height]}
           stroke="#cbd5e1"
           strokeWidth={2}
-        />
-      </Group>
+        /> */}
+      {/* </Group> */}
 
       <Text
         text={section.label || "Section"}
