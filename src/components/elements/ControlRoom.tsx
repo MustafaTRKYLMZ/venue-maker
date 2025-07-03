@@ -26,14 +26,12 @@ export const ControlRoomElement = ({
 
   return (
     <GroupWrapper
-      isSelected={isParentSelected}
+      element={controlRoom}
+      isParentSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={onTransformEnd}
       draggable={controlRoom.draggable}
-      position={controlRoom.position}
-      rotation={controlRoom.rotation ?? 0}
-      elementId={controlRoom.id}
     >
       <Rect
         width={controlRoom.width}

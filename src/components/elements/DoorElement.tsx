@@ -12,7 +12,11 @@ interface Props {
     width?: number;
     height?: number;
     rotation?: number;
+    position?: { x: number; y: number };
   }) => void;
+  width?: number; // GroupWrapper'dan geliyor
+  height?: number; // GroupWrapper'dan geliyor
+  rotation?: number; // GroupWrapper'dan geliyor
 }
 
 export const DoorElement = ({
@@ -21,23 +25,28 @@ export const DoorElement = ({
   onClick,
   onDragEnd,
   onTransformEnd,
+  width,
+  height,
+  rotation,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
+  const w = width ?? door.width;
+  const h = height ?? door.height;
+
   return (
     <GroupWrapper
-      isSelected={isParentSelected}
+      element={door}
+      isParentSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={onTransformEnd ?? (() => {})}
-      draggable={door.draggable}
-      position={door.position}
-      rotation={door.rotation ?? 0}
-      elementId={door.id}
+      draggable={door.draggable && isParentSelected}
     >
       <Rect
-        width={door.width}
-        height={door.height}
+        width={w}
+        height={h}
+        rotation={rotation}
         fill={door.fill}
         stroke={isHover ? "#FFA500" : "orange"}
         strokeWidth={isHover ? 3 : 1}
@@ -52,15 +61,16 @@ export const DoorElement = ({
         x={door.width - 10}
         y={door.height / 2}
         radius={4}
-        fill="gold"
+        fill={"gold"}
         stroke="black"
         strokeWidth={1}
       />
       <Line
-        points={[5, 0, 5, door.height]}
+        points={[5, 0, 5, h]}
         stroke="darkgray"
         strokeWidth={1}
         dash={[4, 2]}
+        rotation={rotation}
       />
     </GroupWrapper>
   );

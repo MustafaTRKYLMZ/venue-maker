@@ -13,6 +13,8 @@ interface Props {
     height?: number;
     rotation?: number;
   }) => void;
+  width?: number;
+  height?: number;
 }
 
 export const LightElement = ({
@@ -21,24 +23,23 @@ export const LightElement = ({
   onClick,
   onDragEnd,
   onTransformEnd,
+  width,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
-
+  const w = width ?? light.width;
   return (
     <GroupWrapper
-      isSelected={isParentSelected}
+      element={light}
+      isParentSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={onTransformEnd ?? (() => {})}
-      draggable={light.draggable}
-      position={light.position}
-      rotation={light.rotation ?? 0}
-      elementId={light.id}
+      draggable={light.draggable && isParentSelected}
     >
       <Circle
-        radius={light.width / 2}
+        radius={w / 2}
         fillRadialGradientStartPoint={{ x: 0, y: 0 }}
-        fillRadialGradientEndPoint={{ x: 0, y: 0 }}
+        fillRadialGradientEndPoint={{ x: w / 2, y: w / 2 }}
         fillRadialGradientColorStops={[
           0,
           isHover ? "rgba(255, 255, 100, 0.9)" : "rgba(255, 255, 150, 0.7)",

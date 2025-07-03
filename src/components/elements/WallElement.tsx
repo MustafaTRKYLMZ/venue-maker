@@ -1,4 +1,4 @@
-import { Group, Rect, Line } from "react-konva";
+import { Rect, Line } from "react-konva";
 import { Wall } from "@/src/types/elements";
 import { useState } from "react";
 import { GroupWrapper } from "../common/GroupWrapper";
@@ -13,6 +13,9 @@ interface Props {
     height?: number;
     rotation?: number;
   }) => void;
+  width?: number;
+  height?: number;
+  rotation?: number;
 }
 
 export const WallElement = ({
@@ -21,25 +24,31 @@ export const WallElement = ({
   onClick,
   onDragEnd,
   onTransformEnd,
+  width,
+  height,
+  rotation,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
+  const w = width ?? wall.width;
+  const h = height ?? wall.height;
+  const r = rotation ?? wall.rotation;
+
   return (
     <GroupWrapper
-      isSelected={isParentSelected}
+      element={wall}
+      isParentSelected={isParentSelected}
       onSelect={onClick}
       onDragEnd={onDragEnd}
       onTransformEnd={onTransformEnd}
-      draggable={wall.draggable}
-      position={wall.position}
-      rotation={wall.rotation ?? 0}
-      elementId={wall.id}
+      draggable={wall.draggable && isParentSelected}
     >
       <Rect
-        width={wall.width}
-        height={wall.height}
+        width={w}
+        height={h}
+        rotation={r}
         fillLinearGradientStartPoint={{ x: 0, y: 0 }}
-        fillLinearGradientEndPoint={{ x: 0, y: wall.height }}
+        fillLinearGradientEndPoint={{ x: 0, y: h }}
         fillLinearGradientColorStops={[0, "#d0d0d0", 1, "#a0a0a0"]}
         stroke={isHover ? "#555555" : "#888888"}
         strokeWidth={isHover ? 3 : 2}
@@ -54,10 +63,11 @@ export const WallElement = ({
       {[...Array(5)].map((_, i) => (
         <Line
           key={i}
-          points={[5 + i * 10, 0, 5 + i * 10, wall.height]}
+          points={[5 + i * 10, 0, 5 + i * 10, h]}
           stroke="rgba(255,255,255,0.2)"
           strokeWidth={1}
           dash={[2, 4]}
+          rotation={r}
         />
       ))}
     </GroupWrapper>

@@ -1,89 +1,158 @@
-import { Group } from "react-konva";
+"use client";
+
+import { Group, Transformer } from "react-konva";
 import { useEffect, useRef, useState } from "react";
 import Konva from "konva";
-import { ElementTransformer } from "./ElementTransformer";
+import { Position } from "@/src/types/baseElement";
+import { useMapEditor } from "@/src/context/MapEditorContext";
+import { SelectedElement } from "@/src/types/element";
+import React from "react";
 
 interface Props {
-  isSelected: boolean;
+  element: SelectedElement;
   onSelect: () => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (props: {
     width?: number;
     height?: number;
     rotation?: number;
+    position?: Position;
   }) => void;
+  isParentSelected?: boolean;
+  children?: React.ReactNode;
   draggable?: boolean;
-  position: { x: number; y: number };
-  rotation?: number;
-  children: React.ReactNode;
-  elementId?: string;
 }
 
 export const GroupWrapper = ({
-  isSelected,
+  element,
+  isParentSelected,
   onSelect,
   onDragEnd,
   onTransformEnd,
-  draggable = false,
-  position,
-  rotation = 0,
   children,
-  elementId,
+  draggable,
+  ...props
 }: Props) => {
-  const shapeRef = useRef<Konva.Group>(null);
+  const groupRef = useRef<Konva.Group>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const { selectedElement } = useMapEditor();
+  const isElementSelected = element?.id === selectedElement?.id;
+
+  const [dims, setDims] = useState({
+    x: element?.position.x || 0,
+    y: element?.position.y || 0,
+    width: element?.width || 100,
+    height: element?.height || 100,
+    rotation: element?.rotation || 0,
+  });
 
   useEffect(() => {
-    if (isSelected && shapeRef.current) {
-      shapeRef.current.getLayer()?.batchDraw();
+    if (!element) return;
+    setDims({
+      x: element.position?.x || 0,
+      y: element.position?.y || 0,
+      width: element.width || 100,
+      height: element.height || 100,
+      rotation: element.rotation || 0,
+    });
+  }, [element]);
+
+  useEffect(() => {
+    const tr = transformerRef.current;
+    const group = groupRef.current;
+    if (tr && group) {
+      if (isElementSelected) tr.nodes([group]);
+      else tr.nodes([]);
+      tr.getLayer()?.batchDraw();
     }
-  }, [isSelected]);
+  }, [isElementSelected]);
+
+  const handleTransformEnd = () => {
+    const group = groupRef.current;
+    if (!group) return;
+
+    const scaleX = group.scaleX();
+    const scaleY = group.scaleY();
+    const rotation = group.rotation();
+
+    const newWidth = Math.max(20, dims.width * scaleX);
+    const newHeight = Math.max(20, dims.height * scaleY);
+
+    const newX = group.x();
+    const newY = group.y();
+
+    group.scaleX(1);
+    group.scaleY(1);
+
+    setDims({
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight,
+      rotation,
+    });
+
+    onTransformEnd({
+      width: newWidth,
+      height: newHeight,
+      rotation,
+      position: { x: newX, y: newY },
+    });
+  };
+
+  const childrenWithProps = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, {
+        ...(child.props || {}),
+        width: dims.width,
+        height: dims.height,
+        rotation: dims.rotation,
+      } as Partial<typeof child.props>);
+    }
+    return child;
+  });
 
   return (
     <>
       <Group
-        ref={shapeRef}
-        x={position.x}
-        y={position.y}
-        rotation={rotation}
-        draggable={draggable && isSelected}
+        ref={groupRef}
+        x={dims.x}
+        y={dims.y}
+        rotation={dims.rotation}
+        offsetX={dims.width / 2}
+        offsetY={dims.height / 2}
+        draggable={draggable}
         onClick={onSelect}
         onTap={onSelect}
-        onDragEnd={(e) => onDragEnd(e.target.x(), e.target.y())}
-        onMouseEnter={(e) => {
-          e.target
-            .getStage()
-            ?.container()
-            .style.setProperty("cursor", "pointer");
+        onDragEnd={(e) => {
+          const { x, y } = e.target.position();
+          setDims((d) => ({ ...d, x, y }));
+          onDragEnd(x, y);
         }}
-        onMouseLeave={(e) => {
-          e.target
-            .getStage()
-            ?.container()
-            .style.setProperty("cursor", "default");
-        }}
-        onTransformEnd={() => {
-          const node = shapeRef.current;
-          if (!node) return;
-
-          const box = node.getClientRect({ skipTransform: false });
-          const scaleX = node.scaleX();
-          const scaleY = node.scaleY();
-
-          node.scaleX(1);
-          node.scaleY(1);
-
-          onTransformEnd({
-            width: Math.max(10, box.width * scaleX),
-            height: Math.max(10, box.height * scaleY),
-            rotation: node.rotation(),
-          });
-        }}
+        onTransformEnd={handleTransformEnd}
+        {...props}
       >
-        {children}
+        {childrenWithProps}
       </Group>
 
-      {isSelected && shapeRef.current && (
-        <ElementTransformer selectedShapeRef={shapeRef} elementId={elementId} />
+      {isParentSelected && isElementSelected && (
+        <Transformer
+          ref={transformerRef}
+          anchorSize={8}
+          borderDash={[3, 3]}
+          rotateEnabled
+          keepRatio={false}
+          enabledAnchors={[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "middle-left",
+            "middle-right",
+            "top-center",
+            "bottom-center",
+          ]}
+        />
       )}
     </>
   );
