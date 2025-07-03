@@ -106,7 +106,6 @@ export const GroupWrapper = ({
         ...(child.props || {}),
         width: dims.width,
         height: dims.height,
-        rotation: dims.rotation,
       } as Partial<typeof child.props>);
     }
     return child;

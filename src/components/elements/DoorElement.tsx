@@ -46,7 +46,6 @@ export const DoorElement = ({
       <Rect
         width={w}
         height={h}
-        rotation={rotation}
         fill={door.fill}
         stroke={isHover ? "#FFA500" : "orange"}
         strokeWidth={isHover ? 3 : 1}

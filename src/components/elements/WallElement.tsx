@@ -26,13 +26,11 @@ export const WallElement = ({
   onTransformEnd,
   width,
   height,
-  rotation,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
 
   const w = width ?? wall.width;
   const h = height ?? wall.height;
-  const r = rotation ?? wall.rotation;
 
   return (
     <GroupWrapper
@@ -46,7 +44,6 @@ export const WallElement = ({
       <Rect
         width={w}
         height={h}
-        rotation={r}
         fillLinearGradientStartPoint={{ x: 0, y: 0 }}
         fillLinearGradientEndPoint={{ x: 0, y: h }}
         fillLinearGradientColorStops={[0, "#d0d0d0", 1, "#a0a0a0"]}
@@ -67,7 +64,6 @@ export const WallElement = ({
           stroke="rgba(255,255,255,0.2)"
           strokeWidth={1}
           dash={[2, 4]}
-          rotation={r}
         />
       ))}
     </GroupWrapper>

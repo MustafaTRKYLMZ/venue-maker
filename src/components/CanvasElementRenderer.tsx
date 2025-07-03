@@ -258,8 +258,8 @@ export const CanvasElementsRenderer = () => {
               <StageElement
                 stage={floor.stage}
                 isParentSelected={isParentSelected}
-                onSelect={() => {
-                  handleElementClick("stage", floor.stage!.id);
+                onClick={() => {
+                  floor.stage && handleElementClick("stage", floor.stage.id);
                 }}
                 onDragEnd={(x: number, y: number) =>
                   handleDragEnd("stage", floor.stage!.id, x, y)

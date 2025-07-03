@@ -1,10 +1,12 @@
-import { Group, Rect, Text, Circle, Line } from "react-konva";
+import { Group, Rect, Text, Circle, Line, Transformer } from "react-konva";
 import { Section } from "@/src/types/venue";
 import { KonvaEventObject } from "konva/lib/Node";
 import { useEffect, useRef, useState } from "react";
 import { RowElement } from "./RowElement";
 import { GroupWrapper } from "../common/GroupWrapper";
 import Konva from "konva";
+import { useMapEditor } from "@/src/context/MapEditorContext";
+import { Position } from "@/src/types/baseElement";
 
 interface Props {
   section: Section;
@@ -16,6 +18,7 @@ interface Props {
     width?: number;
     height?: number;
     rotation?: number;
+    position?: Position;
   }) => void;
 }
 
@@ -28,88 +31,131 @@ export const SectionElement = ({
   onTransformEnd,
 }: Props) => {
   const [isHover, setIsHover] = useState(false);
-  const shapeRef = useRef<Konva.Group>(null);
+  const groupRef = useRef<Konva.Group>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const { selectedElement } = useMapEditor();
+  const isElementSelected = section?.id === selectedElement?.id;
+
+  const [dims, setDims] = useState({
+    x: section.position.x,
+    y: section.position.y,
+    width: section.width,
+    height: section.height,
+    rotation: section.rotation,
+  });
 
   useEffect(() => {
-    if (isParentSelected && shapeRef.current) {
-      shapeRef.current.getLayer()?.batchDraw();
+    setDims({
+      x: section.position.x,
+      y: section.position.y,
+      width: section.width,
+      height: section.height,
+      rotation: section.rotation,
+    });
+  }, [section]);
+
+  useEffect(() => {
+    const tr = transformerRef.current;
+    const group = groupRef.current;
+    if (tr && group) {
+      if (isElementSelected) tr.nodes([group]);
+      else tr.nodes([]);
+      tr.getLayer()?.batchDraw();
     }
-  }, [isParentSelected]);
+  }, [isElementSelected]);
+
+  const handleTransformEnd = () => {
+    const group = groupRef.current;
+    if (!group) return;
+
+    const scaleX = group.scaleX();
+    const scaleY = group.scaleY();
+    const rotation = group.rotation();
+
+    const newWidth = Math.max(20, dims.width * scaleX);
+    const newHeight = Math.max(20, dims.height * scaleY);
+
+    const newX = group.x();
+    const newY = group.y();
+
+    group.scaleX(1);
+    group.scaleY(1);
+
+    setDims({
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight,
+      rotation,
+    });
+
+    // onDragEnd(newX, newY);
+    onTransformEnd({
+      width: newWidth,
+      height: newHeight,
+      rotation,
+      position: { x: newX, y: newY },
+    });
+  };
   return (
-    <GroupWrapper
-      isSelected={isParentSelected}
-      onSelect={onClick}
-      onDragEnd={onDragEnd}
-      onTransformEnd={() => {
-        const node = shapeRef.current;
-        if (!node) return;
+    <>
+      <Group
+        ref={groupRef}
+        x={dims.x}
+        y={dims.y}
+        rotation={dims.rotation}
+        offsetX={dims.width / 2}
+        offsetY={dims.height / 2}
+        draggable={section.draggable && isParentSelected}
+        onClick={onClick}
+        onTap={onClick}
+        onDragEnd={(e) => {
+          const { x, y } = e.target.position();
+          setDims((d) => ({ ...d, x, y }));
+          onDragEnd(x, y);
+        }}
+        onTransformEnd={handleTransformEnd}
+      >
+        <Rect
+          width={dims.width}
+          height={dims.height}
+          fill={section.fill}
+          stroke="green"
+          cornerRadius={4}
+        />
 
-        const width = section.width; // or stored section width
-        const height = section.height; // or stored section height
+        <Text
+          text={section.label || "Section"}
+          fontSize={14}
+          fontStyle="bold"
+          fill="#1e293b"
+          x={8}
+          y={8}
+        />
 
-        const rotation = node.rotation();
-
-        onTransformEnd({
-          width,
-          height,
-          rotation,
-        });
-      }}
-      draggable={section.draggable}
-      position={section.position}
-      rotation={section.rotation ?? 0}
-      elementId={section.id}
-    >
-      {/* <Rect
-        width={section.width}
-        height={section.height}
-        fill={isHover ? "#f1f5f9" : "#f8fafc"}
-        stroke="transparent"
-        // stroke={isHover ? "#94a3b8" : "#cbd5e1"}
-        // strokeWidth={2}
-        cornerRadius={8}
-        // shadowColor="black"
-        shadowBlur={5}
-      /> */}
-      {/* <Group>
-        {/* Top border */}
-      {/* <Line
-          points={[0, 0, section.width, 0]}
-          stroke="#cbd5e1"
-          strokeWidth={2}
-        /> */}
-      {/* Right border */}
-      {/* <Line
-          points={[section.width, 0, section.width, section.height]}
-          stroke="#cbd5e1"
-          strokeWidth={2}
-        /> */}
-      {/* Bottom border */}
-      {/* <Line
-          points={[0, section.height, section.width, section.height]}
-          stroke="#cbd5e1"
-          strokeWidth={2}
-        /> */}
-      {/* Left border */}
-      {/* <Line
-          points={[0, 0, 0, section.height]}
-          stroke="#cbd5e1"
-          strokeWidth={2}
-        /> */}
-      {/* </Group> */}
-
-      <Text
-        text={section.label || "Section"}
-        fontSize={14}
-        fontStyle="bold"
-        fill="#1e293b"
-        x={8}
-        y={8}
-      />
-
-      {section.rows.map((row) => (
-        <RowElement key={row.id} row={row} onSeatClick={onSeatClick} />
-      ))}
-    </GroupWrapper>
+        {section.rows.map((row) => (
+          <RowElement key={row.id} row={row} onSeatClick={onSeatClick} />
+        ))}
+      </Group>
+      {isParentSelected && isElementSelected && (
+        <Transformer
+          ref={transformerRef}
+          anchorSize={8}
+          borderDash={[3, 3]}
+          rotateEnabled
+          keepRatio={false}
+          enabledAnchors={[
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right",
+            "middle-left",
+            "middle-right",
+            "top-center",
+            "bottom-center",
+          ]}
+        />
+      )}
+    </>
   );
 };
