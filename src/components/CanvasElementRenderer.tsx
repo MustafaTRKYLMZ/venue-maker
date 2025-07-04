@@ -3,18 +3,18 @@ import React from "react";
 import { Circle, Group, Rect, Text } from "react-konva";
 import { useMapEditor } from "../context/MapEditorContext";
 import { ElementType } from "../types/element";
-import { Venue } from "../types/venue";
+import { StageElement } from "./elements/StageElement";
+import { ControlRoomElement } from "./elements/ControlRoom";
+import { DoorElement } from "./elements/DoorElement";
+import { LightElement } from "./elements/LightElement";
+import { WallElement } from "./elements/WallElement";
+import { SectionElement } from "./elements/SectionElement";
+import { Position } from "../types/baseElement";
 
 export const CanvasElementsRenderer = () => {
-  const {
-    venue,
-    selectedFloorId,
-    setVenue,
-    setSelectedElement,
-    selectedElement,
-  } = useMapEditor();
+  const { venue, selectedFloorId, setVenue, setSelectedElement } =
+    useMapEditor();
   if (!selectedFloorId) return null;
-
   const floor = venue.floors.find((f) => f.id === selectedFloorId);
   if (!floor) return null;
 
@@ -112,7 +112,7 @@ export const CanvasElementsRenderer = () => {
 
   const handleElementClick = (type: ElementType, id: string) => {
     console.log(`${type} clicked`, id);
-    // Here you can handle the click event for the element
+
     const floor = venue.floors.find((floor) => floor.id === selectedFloorId);
     if (!floor) return;
 
@@ -154,232 +154,202 @@ export const CanvasElementsRenderer = () => {
       setSelectedElement(selectedElement);
     }
   };
-  console.log("Selected Element:", selectedElement);
+
+  const handleTransformEnd = (
+    type: ElementType,
+    id: string,
+    newProps: {
+      width?: number;
+      height?: number;
+      rotation?: number;
+      position?: Position;
+    },
+  ) => {
+    if (!selectedFloorId) return;
+
+    const updatedFloors = venue.floors.map((floor) => {
+      if (floor.id !== selectedFloorId) return floor;
+
+      const updateProps = (element: any) => ({
+        ...element,
+        width: newProps.width ?? element.width,
+        height: newProps.height ?? element.height,
+        rotation: newProps.rotation ?? element.rotation,
+        position: newProps.position ?? element.position,
+      });
+
+      switch (type) {
+        case "stage":
+          return {
+            ...floor,
+            stage:
+              floor.stage && floor.stage.id === id
+                ? updateProps(floor.stage)
+                : floor.stage,
+          };
+
+        case "controlRoom":
+          return {
+            ...floor,
+            controlRoom:
+              floor.controlRoom && floor.controlRoom.id === id
+                ? updateProps(floor.controlRoom)
+                : floor.controlRoom,
+          };
+
+        case "door":
+          return {
+            ...floor,
+            doors: floor.doors.map((d) => (d.id === id ? updateProps(d) : d)),
+          };
+
+        case "wall":
+          return {
+            ...floor,
+            walls: floor.walls.map((w) => (w.id === id ? updateProps(w) : w)),
+          };
+
+        case "light":
+          return {
+            ...floor,
+            lights: floor.lights.map((l) => (l.id === id ? updateProps(l) : l)),
+          };
+
+        case "section":
+          return {
+            ...floor,
+            sections: floor.sections.map((s) =>
+              s.id === id ? updateProps(s) : s,
+            ),
+          };
+
+        case "seat":
+          return {
+            ...floor,
+            sections: floor.sections.map((section) => ({
+              ...section,
+              rows: section.rows.map((row) => ({
+                ...row,
+                seats: row.seats.map((seat) =>
+                  seat.id === id ? updateProps(seat) : seat,
+                ),
+              })),
+            })),
+          };
+
+        default:
+          return floor;
+      }
+    });
+
+    setVenue({ ...venue, floors: updatedFloors });
+  };
+
   return (
     <>
       {venue.floors.map((floor) => {
-        const isSelected = floor.id === selectedFloorId;
-        const opacity = isSelected ? 1 : 0.1;
-        const listening = isSelected;
+        const isParentSelected = floor.id === selectedFloorId;
+        const opacity = isParentSelected ? 1 : 0.1;
+        const listening = isParentSelected;
         return (
           <Group key={floor.id} opacity={opacity} listening={listening}>
             {/* STAGE */}
             {floor.stage && (
-              <Group
-                key={floor.stage.id}
-                x={floor.stage.position.x}
-                y={floor.stage.position.y}
-                draggable={isSelected && floor.stage.draggable}
+              <StageElement
+                stage={floor.stage}
+                isParentSelected={isParentSelected}
                 onClick={() => {
-                  if (isSelected && floor.stage) {
-                    handleElementClick("stage", floor.stage.id);
-                  }
+                  floor.stage && handleElementClick("stage", floor.stage.id);
                 }}
-                onDragEnd={(e) => {
-                  if (isSelected) {
-                    handleDragEnd(
-                      "stage",
-                      floor.stage?.id || "",
-                      e.target.x(),
-                      e.target.y(),
-                    );
-                  }
-                }}
-              >
-                <Rect
-                  width={floor.stage.width}
-                  height={floor.stage.height}
-                  fill={floor.stage.fill}
-                  stroke="green"
-                />
-                <Text
-                  text={floor.stage.label}
-                  fontSize={floor.stage.fontSize}
-                  fill="black"
-                  x={
-                    floor.stage.width / 2 -
-                    (floor.stage.label.length * floor.stage.fontSize) / 4
-                  }
-                  y={floor.stage.height / 2 - floor.stage.fontSize / 2}
-                />
-              </Group>
+                onDragEnd={(x: number, y: number) =>
+                  handleDragEnd("stage", floor.stage!.id, x, y)
+                }
+                onTransformEnd={(newProps) =>
+                  floor.stage &&
+                  handleTransformEnd("stage", floor.stage.id, newProps)
+                }
+              />
             )}
 
             {/* CONTROL ROOM */}
             {floor.controlRoom && (
-              <Group
-                key={floor.controlRoom.id}
-                x={floor.controlRoom.position.x}
-                y={floor.controlRoom.position.y}
-                draggable={isSelected && floor.controlRoom.draggable}
-                onDragEnd={(e) => {
-                  if (isSelected) {
-                    handleDragEnd(
-                      "controlRoom",
-                      floor.controlRoom?.id || "",
-                      e.target.x(),
-                      e.target.y(),
-                    );
-                  }
-                }}
-                onClick={(e) => {
-                  e.cancelBubble = true; // Prevent event bubbling
-                  if (floor.controlRoom) {
-                    console.log("Control Room clicked", floor.controlRoom.id);
-                  }
-                }}
-              >
-                <Rect
-                  width={floor.controlRoom.width}
-                  height={floor.controlRoom.height}
-                  fill={floor.controlRoom.fill}
-                  stroke="purple"
-                />
-                <Text
-                  text={floor.controlRoom.label}
-                  fontSize={floor.controlRoom.fontSize}
-                  fill="black"
-                  x={
-                    floor.controlRoom.width / 2 -
-                    (floor.controlRoom.label.length *
-                      floor.controlRoom.fontSize) /
-                      4
-                  }
-                  y={
-                    floor.controlRoom.height / 2 -
-                    floor.controlRoom.fontSize / 2
-                  }
-                />
-              </Group>
+              <ControlRoomElement
+                controlRoom={floor.controlRoom}
+                isParentSelected={isParentSelected}
+                onClick={() =>
+                  floor.controlRoom &&
+                  handleElementClick("controlRoom", floor.controlRoom.id)
+                }
+                onDragEnd={(x, y) =>
+                  floor.controlRoom &&
+                  handleDragEnd("controlRoom", floor.controlRoom!.id, x, y)
+                }
+                onTransformEnd={(newProps) =>
+                  floor.controlRoom &&
+                  handleTransformEnd(
+                    "controlRoom",
+                    floor.controlRoom.id,
+                    newProps,
+                  )
+                }
+              />
             )}
 
             {/* DOORS */}
             {floor.doors.map((door) => (
-              <Group
+              <DoorElement
                 key={door.id}
-                x={door.position.x}
-                y={door.position.y}
-                draggable={isSelected && door.draggable}
-                onDragEnd={(e) =>
-                  isSelected &&
-                  handleDragEnd("door", door.id, e.target.x(), e.target.y())
+                door={door}
+                isParentSelected={isParentSelected}
+                onClick={() => handleElementClick("door", door.id)}
+                onDragEnd={(x, y) => handleDragEnd("door", door.id, x, y)}
+                onTransformEnd={(newProps) =>
+                  door && handleTransformEnd("door", door.id, newProps)
                 }
-              >
-                <Rect
-                  width={door.width}
-                  height={door.height}
-                  fill={door.fill}
-                  stroke="orange"
-                />
-              </Group>
+              />
             ))}
 
             {/* WALLS */}
             {floor.walls.map((wall) => (
-              <Group
+              <WallElement
                 key={wall.id}
-                x={wall.position.x}
-                y={wall.position.y}
-                draggable={isSelected && wall.draggable}
-                onDragEnd={(e) =>
-                  isSelected &&
-                  handleDragEnd("wall", wall.id, e.target.x(), e.target.y())
+                wall={wall}
+                onTransformEnd={(newProps) =>
+                  wall && handleTransformEnd("wall", wall.id, newProps)
                 }
-              >
-                <Rect
-                  width={wall.width}
-                  height={wall.height}
-                  fill={wall.fill}
-                  stroke="gray"
-                />
-              </Group>
+                isParentSelected={isParentSelected}
+                onClick={() => handleElementClick("wall", wall.id)}
+                onDragEnd={(x, y) => handleDragEnd("wall", wall.id, x, y)}
+              />
             ))}
 
             {/* LIGHTS */}
             {floor.lights.map((light) => (
-              <Group
+              <LightElement
                 key={light.id}
-                x={light.position.x}
-                y={light.position.y}
-                draggable={isSelected && light.draggable}
-                onDragEnd={(e) =>
-                  isSelected &&
-                  handleDragEnd("light", light.id, e.target.x(), e.target.y())
+                light={light}
+                isParentSelected={isParentSelected}
+                onClick={() => handleElementClick("light", light.id)}
+                onDragEnd={(x, y) => handleDragEnd("light", light.id, x, y)}
+                onTransformEnd={(newProps) =>
+                  light && handleTransformEnd("light", light.id, newProps)
                 }
-              >
-                <Circle
-                  radius={light.width / 2}
-                  x={light.position.x}
-                  y={light.position.y}
-                  fill={light.fill}
-                  stroke="yellow"
-                />
-              </Group>
+              />
             ))}
 
             {/* SECTIONS */}
             {floor.sections.map((section) => (
-              <Group
+              <SectionElement
                 key={section.id}
-                x={section.position.x}
-                y={section.position.y}
-                draggable={isSelected && section.draggable}
-                onDragEnd={(e) =>
-                  isSelected &&
-                  handleDragEnd(
-                    "section",
-                    section.id,
-                    e.target.x(),
-                    e.target.y(),
-                  )
+                section={section}
+                isParentSelected={isParentSelected}
+                onClick={() => handleElementClick("section", section.id)}
+                onDragEnd={(x, y) => handleDragEnd("section", section.id, x, y)}
+                onSeatClick={(seatId) => handleElementClick("seat", seatId)}
+                onTransformEnd={(newProps) =>
+                  section && handleTransformEnd("section", section.id, newProps)
                 }
-              >
-                <Rect
-                  width={section.width}
-                  height={section.height}
-                  fill={section.fill}
-                  stroke="blue"
-                />
-                {section.rows.map((row) => (
-                  <Group
-                    key={row.id}
-                    x={row.position.x}
-                    y={row.position.y}
-                    draggable={isSelected && row.draggable}
-                    onDragEnd={(e) =>
-                      isSelected &&
-                      handleDragEnd("row", row.id, e.target.x(), e.target.y())
-                    }
-                  >
-                    <Rect
-                      width={row.width}
-                      height={row.height}
-                      fill={row.fill}
-                      stroke="yellow"
-                    />
-                    {row.seats.map((seat) => (
-                      <Circle
-                        key={seat.id}
-                        x={seat.position.x + seat.width / 2}
-                        y={seat.position.y + seat.height / 2}
-                        radius={seat.width / 2}
-                        fill={seat.fill}
-                        stroke="red"
-                        draggable={isSelected && seat.draggable}
-                        onDragEnd={(e) =>
-                          isSelected &&
-                          handleDragEnd(
-                            "seat",
-                            seat.id,
-                            e.target.x(),
-                            e.target.y(),
-                          )
-                        }
-                      />
-                    ))}
-                  </Group>
-                ))}
-              </Group>
+              />
             ))}
           </Group>
         );

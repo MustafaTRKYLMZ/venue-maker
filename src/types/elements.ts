@@ -24,4 +24,15 @@ export interface ControlRoom extends BaseElement {
   type: "controlRoom";
 }
 
-export type VenueElement = Venue | Floor | Section | Row | Seat;
+export type VenueElement =
+  | Venue
+  | Floor
+  | Section
+  | Row
+  | Seat
+  | Stage
+  | ControlRoom
+  | Door
+  | Wall
+  | Light
+  | BaseElement;

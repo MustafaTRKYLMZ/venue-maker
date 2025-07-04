@@ -1,5 +1,5 @@
 // types/baseElement.ts
-import { ElementType } from "./element";
+import { ElementType, SelectedElement } from "./element";
 
 export type Position = {
   x: number;
@@ -30,4 +30,5 @@ export interface BaseElement {
   initialHeight?: number;
   initialX?: number;
   initialY?: number;
+  children?: SelectedElement[];
 }

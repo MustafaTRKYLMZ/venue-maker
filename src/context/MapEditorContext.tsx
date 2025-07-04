@@ -3,6 +3,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Venue } from "@/src/types/venue";
 import { SelectedElement, ToolType } from "@/src/types/element";
+import { updateElementById as updateElementHelper } from "@/src/utils/helpers/updateElementById";
+import { deleteElementById as deleteElementHelper } from "@/src/utils/helpers/deleteElementById";
+import { toast } from "sonner";
+import { useVenues } from "@/src/context/VenuesContext";
 
 type MapEditorContextType = {
   venue: Venue;
@@ -19,6 +23,9 @@ type MapEditorContextType = {
   setHistory: React.Dispatch<React.SetStateAction<Venue[]>>;
   historyPointer: number;
   setHistoryPointer: React.Dispatch<React.SetStateAction<number>>;
+  onSave: () => Promise<void>;
+  updateElementById: (updatedElement: SelectedElement) => void;
+  deleteElementById: (elementId: string) => void;
 };
 
 const MapEditorContext = createContext<MapEditorContextType | undefined>(
@@ -38,6 +45,9 @@ export const MapEditorProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  // Venues context'ten ekleme ve güncelleme fonksiyonları
+  const { venues, addVenue, updateVenue: updateVenueInList } = useVenues();
+
   const [venue, setVenue] = useState<Venue>({
     id: "venue-1",
     type: "venue",
@@ -62,6 +72,7 @@ export const MapEditorProvider = ({
     image: "https://example.com/venue-image.jpg",
     capacity: 5000,
   });
+
   const [selectedElement, setSelectedElement] =
     useState<SelectedElement | null>(null);
   const [history, setHistory] = useState<Venue[]>([]);
@@ -78,10 +89,20 @@ export const MapEditorProvider = ({
     setHistory(updatedHistory);
     setHistoryPointer(updatedHistory.length - 1);
   };
+
   const updateVenue = (newVenue: Venue) => {
     setVenue(newVenue);
     pushToHistory(newVenue);
+    updateVenueInList(newVenue);
   };
+
+  useEffect(() => {
+    const venueFromLocal = localStorage.getItem("venue");
+    if (venueFromLocal) {
+      const parsedVenue = JSON.parse(venueFromLocal) as Venue;
+      setVenue(parsedVenue);
+    }
+  }, []);
 
   useEffect(() => {
     if (venue && history.length === 0) {
@@ -89,6 +110,32 @@ export const MapEditorProvider = ({
       setHistoryPointer(0);
     }
   }, [venue]);
+
+  const onSave = async () => {
+    try {
+      const exists = venues.some((v) => v.id === venue.id);
+      if (exists) {
+        updateVenueInList(venue);
+      } else {
+        addVenue(venue);
+      }
+      toast.success("Venue saved successfully");
+    } catch (error) {
+      console.error("Error saving venue:", error);
+      toast.error("Error saving venue");
+    }
+  };
+
+  const updateElementById = (updatedElement: SelectedElement) => {
+    const updatedVenue = updateElementHelper(venue, updatedElement);
+    updateVenue(updatedVenue);
+  };
+
+  const deleteElementById = (elementId: string) => {
+    const updatedVenue = deleteElementHelper(venue, elementId);
+    updateVenue(updatedVenue);
+  };
+
   return (
     <MapEditorContext.Provider
       value={{
@@ -104,6 +151,9 @@ export const MapEditorProvider = ({
         historyPointer,
         setHistoryPointer,
         setHistory,
+        onSave,
+        updateElementById,
+        deleteElementById,
       }}
     >
       {children}

@@ -1,3 +1,4 @@
+import { BaseElement } from "./baseElement";
 import { ControlRoom, Door, Light, Stage, Wall } from "./elements";
 import { Section, Seat, Venue } from "./venue";
 
@@ -29,11 +30,11 @@ export type ToolType =
   | null;
 
 export type SelectedElement =
-  | Venue
   | Stage
   | ControlRoom
   | Door
   | Wall
   | Light
   | Section
-  | Seat;
+  | Seat
+  | BaseElement;
