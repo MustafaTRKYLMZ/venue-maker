@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { VenuesProvider } from "../context/VenuesContext";
+import { MapEditorProvider } from "../context/MapEditorContext";
 
 const geistSans = Inter({
   variable: "--font-inter-sans",
@@ -28,8 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster />
+        <VenuesProvider>
+          <MapEditorProvider>{children}</MapEditorProvider>
+        </VenuesProvider>
       </body>
     </html>
   );

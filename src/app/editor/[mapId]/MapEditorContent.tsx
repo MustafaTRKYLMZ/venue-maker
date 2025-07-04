@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAddFloor } from "@/src/hooks/useAddFloor";
 import { MapEditorHeader } from "@/src/components/MapEditorHeader";
-import { PropertiesPanel } from "@/src/components/PropertiesPanel";
+import { PropertiesSheet } from "@/src/components/PropertiesSheet";
 import { CanvasEditor } from "@/src/components/canvas-editor/CanvasEditor";
 import { AddMultipleSeatDialog } from "@/src/components/AddMultipleSeatDialog";
 import { CanvasEditorProvider } from "@/src/components/canvas-editor/CanvasEditorContext";
@@ -53,22 +53,10 @@ export function MapEditorContent() {
       <MapEditorHeader
         setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
         venueName={venue.name}
-        handleUndo={() => {}}
-        handleRedo={() => {}}
-        historyLength={0}
-        handleSaveMap={() => {}}
-        isSaving={false}
       />
 
       {/* Main content */}
       <div className="flex flex-row overflow-visible">
-        {/* Left panel */}
-        {/* <aside className="flex flex-col w-40 bg-gray-100 border-r border-gray-300 overflow-auto p-1 z-10">
-          <LeftPanelTools
-            setIsMultipleSeatDialogOpen={setIsMultipleSeatDialogOpen}
-          />
-        </aside> */}
-
         {/* Canvas area */}
         <main className="relative flex-grow bg-white rounded-md border border-gray-300 overflow-auto flex flex-col">
           <CanvasEditorProvider>
@@ -88,11 +76,7 @@ export function MapEditorContent() {
 
         {/* Right panel */}
         {/* Properties panel */}
-        {selectedElement && (
-          <aside className="w-64 border-l border-t bg-white border-gray-300">
-            <PropertiesPanel />
-          </aside>
-        )}
+        {selectedElement && <PropertiesSheet />}
 
         {/* Add Multiple Seat Dialog */}
         {isMultipleSeatDialogOpen && (
