@@ -45,7 +45,6 @@ export const MapEditorProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  // Venues context'ten ekleme ve güncelleme fonksiyonları
   const { venues, addVenue, updateVenue: updateVenueInList } = useVenues();
 
   const [venue, setVenue] = useState<Venue>({
@@ -116,8 +115,10 @@ export const MapEditorProvider = ({
       const exists = venues.some((v) => v.id === venue.id);
       if (exists) {
         updateVenueInList(venue);
+        toast.success("Venue updated successfully");
       } else {
         addVenue(venue);
+        toast.success("Venue added successfully");
       }
       toast.success("Venue saved successfully");
     } catch (error) {

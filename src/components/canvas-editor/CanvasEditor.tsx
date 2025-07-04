@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useRef, useEffect } from "react";
+import React, { FC, useRef, useEffect, useState } from "react";
 import { Venue } from "@/src/types/venue";
 import { Layer, Rect, Stage } from "react-konva";
 import { ToolType } from "@/src/types/element";
@@ -34,6 +34,27 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
   cols,
 }) => {
   const stageRef = useRef<any>(null);
+
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setIsShiftPressed(true);
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setIsShiftPressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
   const { rotation, setRotation, zoom, isDragging, setIsDragging } =
     useCanvasEditor();
   const { venue, setVenue, selectedFloorId, setSelectedElement } =
@@ -66,18 +87,21 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
       if (selectedTool && selectedFloorId) {
         const stage = stageRef.current;
         const pointerPosition = stage.getPointerPosition();
-
         if (!pointerPosition) return;
+
         if (selectedTool.type === "section") {
           addElement(selectedTool, pointerPosition, {
             rowCount: rows,
             colCount: cols,
           });
+
+          if (!isShiftPressed) {
+            setSelectedTool(null);
+          }
         } else {
           addElement(selectedTool, pointerPosition);
+          setSelectedTool(null);
         }
-
-        setSelectedTool(null);
       }
     }
   };
