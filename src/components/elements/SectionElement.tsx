@@ -7,6 +7,8 @@ import { GroupWrapper } from "../common/GroupWrapper";
 import Konva from "konva";
 import { useMapEditor } from "@/src/context/MapEditorContext";
 import { Position } from "@/src/types/baseElement";
+import { v4 as uuidv4 } from "uuid";
+import { useKeyboard } from "@/src/hooks/useKeyboard";
 
 interface Props {
   section: Section;
@@ -30,10 +32,9 @@ export const SectionElement = ({
   onSeatClick,
   onTransformEnd,
 }: Props) => {
-  const [isHover, setIsHover] = useState(false);
   const groupRef = useRef<Konva.Group>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const { selectedElement } = useMapEditor();
+  const { venue, setVenue, selectedFloorId, selectedElement } = useMapEditor();
   const isElementSelected = section?.id === selectedElement?.id;
 
   const [dims, setDims] = useState({
@@ -43,6 +44,7 @@ export const SectionElement = ({
     height: section.height,
     rotation: section.rotation,
   });
+  const { isAltPressed } = useKeyboard();
 
   useEffect(() => {
     setDims({
@@ -97,6 +99,36 @@ export const SectionElement = ({
       position: { x: newX, y: newY },
     });
   };
+
+  const handleAltDragStart = () => {
+    if (!isAltPressed || !selectedFloorId) return;
+
+    const copiedSection = {
+      ...section,
+      id: uuidv4(),
+
+      label: "Copy of " + (section?.label || "Section"),
+      position: {
+        x: dims.x + 20,
+        y: dims.y + 20,
+      },
+    };
+
+    const updatedVenue = {
+      ...venue,
+      floors: venue.floors.map((floor) =>
+        floor.id === selectedFloorId
+          ? {
+              ...floor,
+              sections: [...floor.sections, copiedSection],
+            }
+          : floor,
+      ),
+    };
+
+    setVenue(updatedVenue);
+  };
+
   return (
     <>
       <Group
@@ -113,6 +145,9 @@ export const SectionElement = ({
           const { x, y } = e.target.position();
           setDims((d) => ({ ...d, x, y }));
           onDragEnd(x, y);
+        }}
+        onDragStart={() => {
+          handleAltDragStart();
         }}
         onTransformEnd={handleTransformEnd}
       >

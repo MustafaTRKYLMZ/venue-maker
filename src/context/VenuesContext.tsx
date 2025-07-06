@@ -20,20 +20,35 @@ export const useVenues = () => {
 
 export const VenuesProvider = ({ children }: { children: React.ReactNode }) => {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("venues");
-    if (stored) setVenues(JSON.parse(stored));
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setVenues(parsed);
+      } catch (e) {
+        console.error("Invalid JSON in localStorage:", e);
+      }
+    }
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("venues", JSON.stringify(venues));
-  }, [venues]);
+    if (isInitialized) {
+      localStorage.setItem("venues", JSON.stringify(venues));
+    }
+  }, [venues, isInitialized]);
 
   const addVenue = (venue: Venue) => setVenues((prev) => [...prev, venue]);
 
   const updateVenue = (updated: Venue) =>
-    setVenues((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+    setVenues((prev) =>
+      prev.map((v) =>
+        v.id === updated.id ? { ...updated, _updatedAt: Date.now() } : v,
+      ),
+    );
 
   const deleteVenue = (venueId: string) =>
     setVenues((prev) => prev.filter((v) => v.id !== venueId));

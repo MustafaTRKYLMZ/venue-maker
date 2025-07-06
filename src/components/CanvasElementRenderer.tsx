@@ -151,6 +151,7 @@ export const CanvasElementsRenderer = () => {
       type === "section" ||
       type === "seat"
     ) {
+      console.log("Selected element:", selectedElement);
       setSelectedElement(selectedElement);
     }
   };

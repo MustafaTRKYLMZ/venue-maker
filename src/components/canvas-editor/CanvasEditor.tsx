@@ -12,6 +12,7 @@ import { useMapEditor } from "@/src/context/MapEditorContext";
 import Konva from "konva";
 import { useAddElement } from "@/src/hooks/useAddElement";
 import { CanvasElementsRenderer } from "../CanvasElementRenderer";
+import { useKeyboard } from "@/src/hooks/useKeyboard";
 
 export type CanvasEditorProps = {
   venue: Venue;
@@ -34,31 +35,17 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
   cols,
 }) => {
   const stageRef = useRef<any>(null);
-
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Shift") setIsShiftPressed(true);
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "Shift") setIsShiftPressed(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
+  const { isShiftPressed } = useKeyboard();
 
   const { rotation, setRotation, zoom, isDragging, setIsDragging } =
     useCanvasEditor();
-  const { venue, setVenue, selectedFloorId, setSelectedElement } =
-    useMapEditor();
+  const {
+    venue,
+    setVenue,
+    selectedFloorId,
+    setSelectedElement,
+    selectedElement,
+  } = useMapEditor();
   const addElement = useAddElement(venue, setVenue, selectedFloorId || "");
   const { width, height } = useWindowSize();
 
@@ -106,6 +93,11 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
     }
   };
 
+  const isMac =
+    typeof window !== "undefined" &&
+    (navigator.userAgent.includes("Mac") ||
+      navigator.platform?.includes("Mac"));
+
   return (
     <>
       <Stage
@@ -133,6 +125,21 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
           <CanvasElementsRenderer />
         </Layer>
       </Stage>
+      {selectedElement && (
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 10,
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            padding: "5px 10px",
+            fontSize: 12,
+            color: "#555",
+          }}
+        >
+          {isMac ? "⌥ Option" : "Alt"} + Drag to copy
+        </div>
+      )}
 
       <CanvasControls
         venue={venue}

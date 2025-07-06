@@ -47,30 +47,8 @@ export const MapEditorProvider = ({
 }) => {
   const { venues, addVenue, updateVenue: updateVenueInList } = useVenues();
 
-  const [venue, setVenue] = useState<Venue>({
-    id: "venue-1",
-    type: "venue",
-    name: "New Venue",
-    floors: [
-      {
-        id: "1",
-        name: "Ground Floor",
-        type: "floor",
-        index: 0,
-        sections: [],
-        doors: [],
-        stage: undefined,
-        walls: [],
-        lights: [],
-      },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    address: "Lele Street 123",
-    description: "A new venue for events",
-    image: "https://example.com/venue-image.jpg",
-    capacity: 5000,
-  });
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [selectedElement, setSelectedElement] =
     useState<SelectedElement | null>(null);
@@ -78,9 +56,50 @@ export const MapEditorProvider = ({
   const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
-  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(
-    venue.floors.length > 0 ? venue.floors[0].id : "1",
-  );
+  const [selectedFloorId, setSelectedFloorId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const venueFromLocal = localStorage.getItem("venue");
+    if (venueFromLocal) {
+      try {
+        const parsedVenue = JSON.parse(venueFromLocal) as Venue;
+        setVenue(parsedVenue);
+        setSelectedFloorId(
+          parsedVenue.floors.length > 0 ? parsedVenue.floors[0].id : null,
+        );
+      } catch (error) {
+        console.error("Failed to parse venue from localStorage", error);
+      }
+    } else {
+      const defaultVenue: Venue = {
+        id: "venue-1",
+        type: "venue",
+        name: "New Venue",
+        floors: [
+          {
+            id: "1",
+            name: "Ground Floor",
+            type: "floor",
+            index: 0,
+            sections: [],
+            doors: [],
+            stage: undefined,
+            walls: [],
+            lights: [],
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        address: "Lele Street 123",
+        description: "A new venue for events",
+        image: "https://example.com/venue-image.jpg",
+        capacity: 5000,
+      };
+      setVenue(defaultVenue);
+      setSelectedFloorId(defaultVenue.floors[0].id);
+    }
+    setIsInitialized(true);
+  }, []);
 
   const pushToHistory = (newVenue: Venue) => {
     const updatedHistory = history.slice(0, historyPointer + 1);
@@ -96,30 +115,34 @@ export const MapEditorProvider = ({
   };
 
   useEffect(() => {
-    const venueFromLocal = localStorage.getItem("venue");
-    if (venueFromLocal) {
-      const parsedVenue = JSON.parse(venueFromLocal) as Venue;
-      setVenue(parsedVenue);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (venue && history.length === 0) {
+    if (isInitialized && venue && history.length === 0) {
       setHistory([venue]);
       setHistoryPointer(0);
     }
-  }, [venue]);
+  }, [venue, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized && venue) {
+      localStorage.setItem("venue", JSON.stringify(venue));
+    }
+  }, [venue, isInitialized]);
 
   const onSave = async () => {
+    if (!venue) return;
+    console.log("on save in ", venue?.floors[0].sections);
     try {
       const exists = venues.some((v) => v.id === venue.id);
+      console.log("exists", exists, "venue", venue?.floors[0].sections);
       if (exists) {
         updateVenueInList(venue);
+        console.log("Updating existing venue", venue);
         toast.success("Venue updated successfully");
       } else {
+        console.log("Adding new venue", venue);
         addVenue(venue);
         toast.success("Venue added successfully");
       }
+      console.log("Saving venue to localStorage", venue);
       toast.success("Venue saved successfully");
     } catch (error) {
       console.error("Error saving venue:", error);
@@ -128,14 +151,18 @@ export const MapEditorProvider = ({
   };
 
   const updateElementById = (updatedElement: SelectedElement) => {
+    if (!venue) return;
     const updatedVenue = updateElementHelper(venue, updatedElement);
     updateVenue(updatedVenue);
   };
 
   const deleteElementById = (elementId: string) => {
+    if (!venue) return;
     const updatedVenue = deleteElementHelper(venue, elementId);
     updateVenue(updatedVenue);
   };
+
+  if (!isInitialized || !venue) return null;
 
   return (
     <MapEditorContext.Provider
