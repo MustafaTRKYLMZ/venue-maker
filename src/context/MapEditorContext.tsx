@@ -19,6 +19,8 @@ type MapEditorContextType = {
   setSelectedElement: React.Dispatch<
     React.SetStateAction<SelectedElement | null>
   >;
+  selectedElements: SelectedElement[];
+  setSelectedElements: React.Dispatch<React.SetStateAction<SelectedElement[]>>;
   history: Venue[];
   setHistory: React.Dispatch<React.SetStateAction<Venue[]>>;
   historyPointer: number;
@@ -52,6 +54,9 @@ export const MapEditorProvider = ({
 
   const [selectedElement, setSelectedElement] =
     useState<SelectedElement | null>(null);
+  const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
+    [],
+  );
   const [history, setHistory] = useState<Venue[]>([]);
   const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
@@ -175,6 +180,8 @@ export const MapEditorProvider = ({
         setSelectedFloorId,
         selectedElement,
         setSelectedElement,
+        selectedElements,
+        setSelectedElements,
         history,
         historyPointer,
         setHistoryPointer,

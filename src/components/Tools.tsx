@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { GiStoneWall } from "react-icons/gi";
 import { useMapEditor } from "../context/MapEditorContext";
+import { FaRegHand } from "react-icons/fa6";
 
 export type ToolsProps = {
   setIsMultipleSeatDialogOpen: (isOpen: boolean) => void;
@@ -64,6 +65,12 @@ export const Tools = ({
   return (
     <div className="flex flex-row w-full h-full justify-between items-center bg-white shadow p-2 rounded-lg gap-2">
       <div className="flex flex-row w-full h-full  p-2 rounded-lg gap-2">
+        <IconButton
+          icon={<FaRegHand size={28} />}
+          tooltipText="Move Tool"
+          onClick={() => handleToolClick("hand")}
+          isSelected={selectedTool?.type === "hand"}
+        />
         <IconButton
           icon={<MdEventSeat size={28} />}
           tooltipText="Add Seat"

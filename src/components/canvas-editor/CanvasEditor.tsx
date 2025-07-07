@@ -53,12 +53,12 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
     const container = stageRef.current?.container();
     if (!container) return;
 
-    if (isDragging) {
-      container.style.cursor = "grabbing";
+    if (selectedTool?.type === "hand") {
+      container.style.cursor = isDragging ? "grabbing" : "grab";
     } else if (selectedTool) {
       container.style.cursor = "crosshair";
     } else {
-      container.style.cursor = "grab";
+      container.style.cursor = "default";
     }
   }, [isDragging, selectedTool]);
 
@@ -103,7 +103,7 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
       <Stage
         width={width}
         height={height}
-        draggable
+        draggable={selectedTool?.type === "hand"}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={() => setIsDragging(false)}
         ref={stageRef}

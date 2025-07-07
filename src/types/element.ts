@@ -14,7 +14,9 @@ export type ElementType =
   | "venue"
   | "light"
   | "row"
-  | "controlRoom";
+  | "controlRoom"
+  | "hand"
+  | "none";
 
 export type ToolType =
   | { type: "floor" }
@@ -27,6 +29,8 @@ export type ToolType =
   | { type: "wall" }
   | { type: "controlRoom" }
   | { type: "text" }
+  | { type: "hand" }
+  | { type: "none" }
   | null;
 
 export type SelectedElement =
