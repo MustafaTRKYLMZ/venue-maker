@@ -7,10 +7,11 @@ import { Position } from "@/src/types/baseElement";
 import { useMapEditor } from "@/src/context/MapEditorContext";
 import { SelectedElement } from "@/src/types/element";
 import React from "react";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   element: SelectedElement;
-  onSelect: () => void;
+  onSelect: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (props: {
     width?: number;
@@ -35,8 +36,10 @@ export const GroupWrapper = ({
 }: Props) => {
   const groupRef = useRef<Konva.Group>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const { selectedElement } = useMapEditor();
-  const isElementSelected = element?.id === selectedElement?.id;
+  const { selectedElements } = useMapEditor();
+  const isElementSelected = selectedElements.some(
+    (el) => el.id === element.id && el.type === element.type,
+  );
 
   const [dims, setDims] = useState({
     x: element?.position.x || 0,

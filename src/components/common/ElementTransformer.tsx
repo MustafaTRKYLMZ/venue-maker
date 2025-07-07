@@ -10,9 +10,8 @@ interface Props {
 
 export const ElementTransformer = ({ selectedShapeRef, elementId }: Props) => {
   const transformerRef = useRef<Konva.Transformer>(null);
-  const { selectedElement } = useMapEditor();
-
-  const visible = selectedElement?.id === elementId;
+  const { selectedElements } = useMapEditor();
+  const visible = selectedElements.some((el) => el.id === elementId);
 
   useEffect(() => {
     if (visible && selectedShapeRef.current && transformerRef.current) {
@@ -24,7 +23,7 @@ export const ElementTransformer = ({ selectedShapeRef, elementId }: Props) => {
       transformerRef.current.nodes([]);
       transformerRef.current.getLayer()?.batchDraw();
     }
-  }, [visible, selectedShapeRef, selectedElement]);
+  }, [visible, selectedShapeRef, selectedElements]);
 
   return (
     <Transformer

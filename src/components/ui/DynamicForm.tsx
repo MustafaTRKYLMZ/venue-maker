@@ -1,4 +1,5 @@
-// components/ui/DynamicForm.tsx
+"use client";
+
 import { useForm, useWatch, Controller } from "react-hook-form";
 import {
   Accordion,
@@ -23,36 +24,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { containerStyle } from "@/src/config/containerStyle";
+import { SelectedElement } from "@/src/types/element";
+import { flattenObject } from "@/src/utils/form/flattenObject";
+import { getCommonFields } from "@/src/utils/form/getCommonFields";
+import { groupFields } from "@/src/utils/form/groupFields";
 
 type DynamicFormProps = {
   type: string;
-  defaultValues: Record<string, any>;
+  defaultValues: Record<string, any> | Record<string, any>[];
   onSubmit: (values: Record<string, any>) => void;
-  handleDelete: () => void;
-};
-
-const groupFields = (fields: string[]) => {
-  const groups: Record<string, string[]> = {
-    General: [],
-    Position: [],
-    Style: [],
-  };
-
-  fields.forEach((field) => {
-    if (field.startsWith("position.")) {
-      groups.Position.push(field);
-    } else if (
-      field.includes("fill") ||
-      field.includes("stroke") ||
-      field === "rotation"
-    ) {
-      groups.Style.push(field);
-    } else {
-      groups.General.push(field);
-    }
-  });
-
-  return groups;
+  handleDelete?: (id?: string) => void;
 };
 
 export const DynamicForm = ({
@@ -61,16 +42,33 @@ export const DynamicForm = ({
   onSubmit,
   handleDelete,
 }: DynamicFormProps) => {
-  const fields = elementFormSchema[type] ?? [];
+  const isMulti = type === "multi";
+
+  const fields = isMulti
+    ? getCommonFields(
+        (defaultValues as SelectedElement[]).map((element) => ({
+          [element.id]: [element],
+        })),
+      )
+    : (elementFormSchema[type] ?? []);
+
   const groupedFields = groupFields(fields);
 
   const { control, handleSubmit, reset } = useForm({
-    defaultValues,
+    defaultValues: isMulti
+      ? Array.isArray(defaultValues)
+        ? flattenObject(defaultValues[0])
+        : {}
+      : defaultValues || {},
   });
 
   useEffect(() => {
-    reset(defaultValues);
-  }, [defaultValues, reset]);
+    reset(
+      isMulti
+        ? flattenObject({ key: [defaultValues] as SelectedElement[] })
+        : (defaultValues as Record<string, any>),
+    );
+  }, [defaultValues, reset, isMulti]);
 
   const getInputType = (key: string, value: any): string => {
     if (key.includes("fill") || key.includes("stroke")) return "color";
@@ -120,28 +118,34 @@ export const DynamicForm = ({
           </AccordionItem>
         ))}
       </Accordion>
+
       <div className="fixed bottom-2 right-2 flex flex-row gap-2 mt-4 justify-space-between items-space-between">
-        <Button type="submit">Apply</Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button className="bg-red-500 hover:bg-red-700">Delete</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                element.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button type="submit">{isMulti ? "Apply to All" : "Apply"}</Button>
+
+        {!isMulti && handleDelete && (defaultValues as any)?.id && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="bg-red-500 hover:bg-red-700">Delete</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  element.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete?.((defaultValues as any)?.id)}
+                >
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </form>
   );

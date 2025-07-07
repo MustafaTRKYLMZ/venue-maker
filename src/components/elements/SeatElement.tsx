@@ -5,19 +5,20 @@ import { useMapEditor } from "@/src/context/MapEditorContext";
 
 interface Props {
   seat: Seat;
-  onClick: (id: string) => void;
+  onClick: (id: string, e: KonvaEventObject<MouseEvent>) => void;
 }
 
 export const SeatElement = ({ seat, onClick }: Props) => {
-  const { selectedElement } = useMapEditor();
+  const { selectedElements } = useMapEditor();
   const color =
     seat.seatType === "vip"
       ? "#facc15"
       : seat.seatType === "accessible"
         ? "#60a5fa"
         : seat.fill;
-
-  const isSelected = selectedElement?.id === seat.id;
+  const isSelected = selectedElements.some(
+    (el) => el.id === seat.id && el.type === "seat",
+  );
 
   return (
     <Circle
@@ -31,7 +32,7 @@ export const SeatElement = ({ seat, onClick }: Props) => {
       strokeWidth={isSelected ? 2 : 1}
       onClick={(e: KonvaEventObject<MouseEvent>) => {
         e.cancelBubble = true;
-        onClick(seat.id);
+        onClick(seat.id, e);
       }}
       onMouseEnter={(e) => {
         e.target.getStage()?.container().style.setProperty("cursor", "pointer");

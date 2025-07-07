@@ -17,7 +17,7 @@ export function MapEditorContent() {
     setSelectedTool,
     selectedFloorId,
     setSelectedFloorId,
-    selectedElement,
+    selectedElements,
   } = useMapEditor();
 
   const [rows, setRows] = useState<number>(5);
@@ -76,7 +76,7 @@ export function MapEditorContent() {
 
         {/* Right panel */}
         {/* Properties panel */}
-        {selectedElement && <PropertiesSheet />}
+        {selectedElements && <PropertiesSheet />}
 
         {/* Add Multiple Seat Dialog */}
         {isMultipleSeatDialogOpen && (

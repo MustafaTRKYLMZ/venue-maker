@@ -13,9 +13,9 @@ import { useKeyboard } from "@/src/hooks/useKeyboard";
 interface Props {
   section: Section;
   isParentSelected: boolean;
-  onClick: () => void;
+  onClick: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
-  onSeatClick: (seatId: string) => void;
+  onSeatClick: (seatId: string, e: KonvaEventObject<MouseEvent>) => void;
   onTransformEnd: (props: {
     width?: number;
     height?: number;
@@ -34,8 +34,10 @@ export const SectionElement = ({
 }: Props) => {
   const groupRef = useRef<Konva.Group>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
-  const { venue, setVenue, selectedFloorId, selectedElement } = useMapEditor();
-  const isElementSelected = section?.id === selectedElement?.id;
+  const { venue, setVenue, selectedFloorId, selectedElements } = useMapEditor();
+  const isElementSelected = selectedElements.some(
+    (el) => el.id === section.id && el.type === "section",
+  );
 
   const [dims, setDims] = useState({
     x: section.position.x,

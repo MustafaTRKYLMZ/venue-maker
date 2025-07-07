@@ -1,4 +1,3 @@
-// components/PropertiesSheet.tsx
 "use client";
 
 import {
@@ -13,30 +12,34 @@ import { toast } from "sonner";
 
 export const PropertiesSheet = () => {
   const {
-    selectedElement,
-    setSelectedElement,
+    selectedElements,
+    setSelectedElements,
     updateElementById,
     deleteElementById,
   } = useMapEditor();
 
-  if (!selectedElement) return null;
+  if (!selectedElements || selectedElements.length === 0) return null;
 
-  const handleDelete = () => {
-    deleteElementById(selectedElement.id);
-    setSelectedElement(null);
+  const handleDelete = (id?: string) => {
+    if (id) {
+      deleteElementById(id);
+    }
+    setSelectedElements((prev) => prev.filter((el) => el.id !== id));
     toast.success("Element deleted successfully");
   };
 
   const handleApplyChanges = (updatedValues: Record<string, any>) => {
-    updateElementById({ ...selectedElement, ...updatedValues });
-    setSelectedElement(null);
+    selectedElements.forEach((el) =>
+      updateElementById({ ...el, ...updatedValues }),
+    );
+    setSelectedElements([]);
     toast.success("Properties updated successfully");
   };
 
   return (
     <Sheet
-      open={!!selectedElement}
-      onOpenChange={(open) => !open && setSelectedElement(null)}
+      open={selectedElements.length > 0}
+      onOpenChange={(open) => !open && setSelectedElements([])}
       modal={false}
     >
       <SheetContent
@@ -49,12 +52,27 @@ export const PropertiesSheet = () => {
         <SheetHeader>
           <SheetTitle>Properties</SheetTitle>
         </SheetHeader>
-        <DynamicForm
-          handleDelete={handleDelete}
-          type={selectedElement.type}
-          defaultValues={selectedElement}
-          onSubmit={handleApplyChanges}
-        />
+
+        {selectedElements.length === 1 ? (
+          <DynamicForm
+            handleDelete={handleDelete}
+            type={selectedElements[0].type}
+            defaultValues={selectedElements[0]}
+            onSubmit={handleApplyChanges}
+          />
+        ) : (
+          <div className="text-sm text-muted-foreground p-2">
+            {selectedElements.length} elements selected. You can edit their
+            properties together. Note that some properties may not apply to all
+            selected elements.
+            <DynamicForm
+              handleDelete={undefined}
+              type="multi"
+              defaultValues={{}}
+              onSubmit={handleApplyChanges}
+            />
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -2,11 +2,12 @@ import { Rect, Text } from "react-konva";
 import { ControlRoom } from "@/src/types/elements";
 import { useState } from "react";
 import { GroupWrapper } from "../common/GroupWrapper";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   controlRoom: ControlRoom;
   isParentSelected: boolean;
-  onClick: () => void;
+  onClick: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (props: {
     width?: number;

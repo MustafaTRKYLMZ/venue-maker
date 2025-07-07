@@ -15,10 +15,6 @@ type MapEditorContextType = {
   setSelectedTool: React.Dispatch<React.SetStateAction<ToolType | null>>;
   selectedFloorId: string | null;
   setSelectedFloorId: React.Dispatch<React.SetStateAction<string | null>>;
-  selectedElement: SelectedElement | null;
-  setSelectedElement: React.Dispatch<
-    React.SetStateAction<SelectedElement | null>
-  >;
   selectedElements: SelectedElement[];
   setSelectedElements: React.Dispatch<React.SetStateAction<SelectedElement[]>>;
   history: Venue[];
@@ -52,8 +48,6 @@ export const MapEditorProvider = ({
   const [venue, setVenue] = useState<Venue | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const [selectedElement, setSelectedElement] =
-    useState<SelectedElement | null>(null);
   const [selectedElements, setSelectedElements] = useState<SelectedElement[]>(
     [],
   );
@@ -178,8 +172,6 @@ export const MapEditorProvider = ({
         setSelectedTool,
         selectedFloorId,
         setSelectedFloorId,
-        selectedElement,
-        setSelectedElement,
         selectedElements,
         setSelectedElements,
         history,

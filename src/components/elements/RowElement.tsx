@@ -1,10 +1,11 @@
 import { Group, Rect } from "react-konva";
 import { Row } from "@/src/types/venue";
 import { SeatElement } from "./SeatElement";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   row: Row;
-  onSeatClick: (seatId: string) => void;
+  onSeatClick: (seatId: string, e: KonvaEventObject<MouseEvent>) => void;
 }
 
 export const RowElement = ({ row, onSeatClick }: Props) => {

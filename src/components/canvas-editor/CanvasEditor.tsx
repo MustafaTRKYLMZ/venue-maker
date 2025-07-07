@@ -43,8 +43,8 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
     venue,
     setVenue,
     selectedFloorId,
-    setSelectedElement,
-    selectedElement,
+    setSelectedElements,
+    selectedElements,
   } = useMapEditor();
   const addElement = useAddElement(venue, setVenue, selectedFloorId || "");
   const { width, height } = useWindowSize();
@@ -116,7 +116,7 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
           e.cancelBubble = true;
           const clickedOnEmpty = e.target === e.target.getStage();
           if (clickedOnEmpty) {
-            setSelectedElement(null);
+            setSelectedElements([]);
           }
         }}
       >
@@ -125,7 +125,7 @@ export const CanvasEditor: FC<CanvasEditorProps> = ({
           <CanvasElementsRenderer />
         </Layer>
       </Stage>
-      {selectedElement && (
+      {selectedElements && (
         <div
           style={{
             position: "absolute",

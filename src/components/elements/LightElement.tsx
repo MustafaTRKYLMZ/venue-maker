@@ -2,11 +2,12 @@ import { Circle } from "react-konva";
 import { Light } from "@/src/types/elements";
 import { useState } from "react";
 import { GroupWrapper } from "../common/GroupWrapper";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   light: Light;
   isParentSelected: boolean;
-  onClick: () => void;
+  onClick: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd?: (props: {
     width?: number;

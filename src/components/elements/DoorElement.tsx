@@ -2,11 +2,12 @@ import { Rect, Line, Circle } from "react-konva";
 import { Door } from "@/src/types/elements";
 import { useState } from "react";
 import { GroupWrapper } from "../common/GroupWrapper";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   door: Door;
   isParentSelected: boolean;
-  onClick: () => void;
+  onClick: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd?: (props: {
     width?: number;
@@ -14,9 +15,9 @@ interface Props {
     rotation?: number;
     position?: { x: number; y: number };
   }) => void;
-  width?: number; // GroupWrapper'dan geliyor
-  height?: number; // GroupWrapper'dan geliyor
-  rotation?: number; // GroupWrapper'dan geliyor
+  width?: number;
+  height?: number;
+  rotation?: number;
 }
 
 export const DoorElement = ({

@@ -7,11 +7,12 @@ import { Stage } from "@/src/types/elements";
 import { Position } from "@/src/types/baseElement";
 import { useMapEditor } from "@/src/context/MapEditorContext";
 import { GroupWrapper } from "../common/GroupWrapper";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Props {
   stage: Stage;
   isParentSelected: boolean;
-  onClick: () => void;
+  onClick: (e: KonvaEventObject<MouseEvent>) => void;
   onDragEnd: (x: number, y: number) => void;
   onTransformEnd: (props: {
     width?: number;
