@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useWatch, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Accordion,
   AccordionContent,
@@ -24,15 +24,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { containerStyle } from "@/src/config/containerStyle";
-import { SelectedElement } from "@/src/types/element";
 import { flattenObject } from "@/src/utils/form/flattenObject";
 import { getCommonFields } from "@/src/utils/form/getCommonFields";
 import { groupFields } from "@/src/utils/form/groupFields";
+import { SelectedElement } from "@/src/types/element";
 
 type DynamicFormProps = {
   type: string;
-  defaultValues: Record<string, any> | Record<string, any>[];
-  onSubmit: (values: Record<string, any>) => void;
+  defaultValues: SelectedElement | SelectedElement[];
+  onSubmit: (values: Record<string, SelectedElement>) => void;
   handleDelete?: (id?: string) => void;
 };
 
@@ -44,29 +44,39 @@ export const DynamicForm = ({
 }: DynamicFormProps) => {
   const isMulti = type === "multi";
 
+  const safeDefaultValues = isMulti
+    ? Array.isArray(defaultValues)
+      ? defaultValues
+      : [defaultValues]
+    : defaultValues;
+  console.log("safeDefaultValues:", safeDefaultValues);
+
   const fields = isMulti
     ? getCommonFields(
-        (defaultValues as SelectedElement[]).map((element) => ({
-          [element.id]: [element],
-        })),
+        (safeDefaultValues as SelectedElement[]).map(
+          (element) => element as unknown as Record<string, SelectedElement[]>,
+        ),
       )
     : (elementFormSchema[type] ?? []);
 
+  console.log("fields", fields);
   const groupedFields = groupFields(fields);
 
   const { control, handleSubmit, reset } = useForm({
     defaultValues: isMulti
-      ? Array.isArray(defaultValues)
-        ? flattenObject(defaultValues[0])
+      ? Array.isArray(safeDefaultValues)
+        ? (flattenObject(safeDefaultValues[0]) as Record<string, any>) || {}
         : {}
-      : defaultValues || {},
+      : (safeDefaultValues as Record<string, any>) || {},
   });
 
   useEffect(() => {
     reset(
-      isMulti
-        ? flattenObject({ key: [defaultValues] as SelectedElement[] })
-        : (defaultValues as Record<string, any>),
+      isMulti &&
+        Array.isArray(safeDefaultValues) &&
+        safeDefaultValues.length > 0
+        ? (flattenObject(safeDefaultValues[0]) as Record<string, any>) || {}
+        : (safeDefaultValues as Record<string, any>) || {},
     );
   }, [defaultValues, reset, isMulti]);
 
@@ -75,7 +85,7 @@ export const DynamicForm = ({
     if (typeof value === "number") return "number";
     return "text";
   };
-
+  console.log("groupedFields", groupedFields);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 z-100">
       <Accordion
@@ -119,7 +129,7 @@ export const DynamicForm = ({
         ))}
       </Accordion>
 
-      <div className="fixed bottom-2 right-2 flex flex-row gap-2 mt-4 justify-space-between items-space-between">
+      <div className="fixed bottom-2 right-2 flex flex-row gap-2 mt-4 justify-end">
         <Button type="submit">{isMulti ? "Apply to All" : "Apply"}</Button>
 
         {!isMulti && handleDelete && (defaultValues as any)?.id && (

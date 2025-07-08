@@ -128,20 +128,19 @@ export const MapEditorProvider = ({
 
   const onSave = async () => {
     if (!venue) return;
-    console.log("on save in ", venue?.floors[0].sections);
+
     try {
       const exists = venues.some((v) => v.id === venue.id);
-      console.log("exists", exists, "venue", venue?.floors[0].sections);
+
       if (exists) {
         updateVenueInList(venue);
-        console.log("Updating existing venue", venue);
+
         toast.success("Venue updated successfully");
       } else {
-        console.log("Adding new venue", venue);
         addVenue(venue);
         toast.success("Venue added successfully");
       }
-      console.log("Saving venue to localStorage", venue);
+
       toast.success("Venue saved successfully");
     } catch (error) {
       console.error("Error saving venue:", error);
@@ -151,7 +150,9 @@ export const MapEditorProvider = ({
 
   const updateElementById = (updatedElement: SelectedElement) => {
     if (!venue) return;
+
     const updatedVenue = updateElementHelper(venue, updatedElement);
+
     updateVenue(updatedVenue);
   };
 

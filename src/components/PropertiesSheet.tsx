@@ -10,11 +10,15 @@ import { useMapEditor } from "@/src/context/MapEditorContext";
 import { DynamicForm } from "./ui/DynamicForm";
 import { toast } from "sonner";
 
+import { updateElementById as updateElementHelper } from "@/src/utils/helpers/updateElementById";
+import { SelectedElement } from "../types/element";
+
 export const PropertiesSheet = () => {
   const {
     selectedElements,
     setSelectedElements,
-    updateElementById,
+    setVenue,
+    venue,
     deleteElementById,
   } = useMapEditor();
 
@@ -28,10 +32,28 @@ export const PropertiesSheet = () => {
     toast.success("Element deleted successfully");
   };
 
-  const handleApplyChanges = (updatedValues: Record<string, any>) => {
-    selectedElements.forEach((el) =>
-      updateElementById({ ...el, ...updatedValues }),
+  const safeMergeElement = (
+    original: SelectedElement,
+    updates: Record<string, any>,
+  ): SelectedElement => {
+    const allowedKeys = Object.keys(original);
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([key]) => allowedKeys.includes(key)),
     );
+    return { ...original, ...filteredUpdates };
+  };
+
+  const handleApplyChanges = (updatedValues: Record<string, any>) => {
+    if (!venue) return;
+
+    let updatedVenue = venue;
+
+    for (const el of selectedElements) {
+      const merged = safeMergeElement(el, updatedValues);
+      updatedVenue = updateElementHelper(updatedVenue, merged);
+    }
+
+    setVenue(updatedVenue);
     setSelectedElements([]);
     toast.success("Properties updated successfully");
   };
@@ -68,7 +90,7 @@ export const PropertiesSheet = () => {
             <DynamicForm
               handleDelete={undefined}
               type="multi"
-              defaultValues={{}}
+              defaultValues={selectedElements}
               onSubmit={handleApplyChanges}
             />
           </div>
