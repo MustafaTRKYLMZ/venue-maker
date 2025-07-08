@@ -6,6 +6,7 @@ import { Floor } from "@/src/types/venue";
 import { IconButton } from "./ui/IconButton";
 import { ElementType, ToolType } from "../types/element";
 import { Button } from "@/components/ui/button";
+import { cn } from "../utils/cn";
 
 interface FloorSelectorProps {
   floors: Floor[];
@@ -53,19 +54,21 @@ export const FloorSelector: React.FC<FloorSelectorProps> = ({
         tooltipText="Add Floor"
         onClick={() => handleFloor("floor")}
         aria-label="Add Floor"
-        className="border border-blue-500 w-10 h-10"
+        className="w-10 h-10 border border-primary bg-muted hover:bg-muted/70"
       />
+
       <div className="flex flex-col-reverse gap-1 max-h-48 overflow-auto">
         {floors.map((floor) => (
           <Button
             key={floor.id}
             onClick={() => onSelectFloor(floor.id)}
             aria-label={`Select Floor ${floor.index + 1}`}
-            className={`w-full text-left ${
+            className={cn(
+              "w-full text-left border rounded-md transition-colors",
               selectedFloorId === floor.id
-                ? "bg-orange-500 text-white hover:bg-orange-600"
-                : ""
-            }`}
+                ? "bg-orange-500 text-white hover:bg-orange-600 border-orange-600"
+                : "bg-white text-gray-800 hover:bg-gray-100 border-gray-300",
+            )}
           >
             {floor.index + 1}
           </Button>

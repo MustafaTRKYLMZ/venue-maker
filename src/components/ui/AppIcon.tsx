@@ -18,10 +18,10 @@ export const AppIcon = ({
   return (
     <div
       className={cn(
-        "w-8 h-8 flex items-center justify-center rounded",
+        "w-8 h-8 flex items-center justify-center rounded transition-colors",
         isActive
-          ? "bg-primary text-orange bg-blue-300 hover:bg-blue-500"
-          : "text-orange-700 bg-transparent",
+          ? "bg-blue-100 text-orange-700"
+          : "text-orange-700 hover:text-orange-800",
         className,
       )}
       style={style}

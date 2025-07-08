@@ -20,14 +20,15 @@ export const ZoomTool = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 w-56 h-16 bg-transparent bg-opacity-90 rounded-lg shadow-lg p-2 flex items-center justify-between gap-2 z-50">
+    <div className="fixed bottom-4 right-4 w-56 h-16 bg-white/90 rounded-lg shadow-lg p-2 flex items-center justify-between gap-2 z-50 border border-orange-200">
       <button
         onClick={decreaseZoom}
         aria-label="Zoom Out"
-        className="w-8 h-8 flex items-center justify-center rounded-md text-blue-600 hover:bg-blue-500 hover:text-white transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-md text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
       >
         <FaMagnifyingGlassMinus />
       </button>
+
       <input
         type="range"
         min={25}
@@ -35,17 +36,21 @@ export const ZoomTool = () => {
         step={5}
         value={zoom}
         onChange={(e) => handleZoomChange(Number(e.target.value))}
-        className="flex-1 accent-blue-500"
+        className="flex-1 accent-orange-500"
         aria-label="Zoom"
       />
+
       <button
         onClick={increaseZoom}
         aria-label="Zoom In"
-        className="w-8 h-8 flex items-center justify-center rounded-md text-blue-600 hover:bg-blue-500 hover:text-white transition-colors"
+        className="w-8 h-8 flex items-center justify-center rounded-md text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
       >
         <FaMagnifyingGlassPlus />
       </button>
-      <div className="text-sm text-gray-700 w-10 text-right"> %{zoom} </div>
+
+      <div className="text-sm text-orange-700 font-semibold w-10 text-right">
+        %{zoom}
+      </div>
     </div>
   );
 };
