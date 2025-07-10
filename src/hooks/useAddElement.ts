@@ -192,7 +192,7 @@ export const useAddElement = (
           return floor;
       }
     });
-    console.log("Updated floors:", updatedFloors);
+
     setVenue({
       ...venue,
       floors: updatedFloors,

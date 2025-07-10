@@ -105,15 +105,30 @@ export const SectionElement = ({
   const handleAltDragStart = () => {
     if (!isAltPressed || !selectedFloorId) return;
 
-    const copiedSection = {
+    const copiedRows = section.rows.map((row) => {
+      const newRowId = uuidv4();
+      const newSeats =
+        row.seats?.map((seat) => ({
+          ...seat,
+          id: uuidv4(),
+        })) || [];
+
+      return {
+        ...row,
+        id: newRowId,
+        seats: newSeats,
+      };
+    });
+
+    const copiedSection: Section = {
       ...section,
       id: uuidv4(),
-
       label: "Copy of " + (section?.label || "Section"),
       position: {
         x: dims.x + 20,
         y: dims.y + 20,
       },
+      rows: copiedRows,
     };
 
     const updatedVenue = {

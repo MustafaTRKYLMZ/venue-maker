@@ -1,8 +1,8 @@
 "use client";
 
-import React, { FC, useRef, useEffect, useState } from "react";
+import React, { FC, useRef, useEffect } from "react";
 import { Venue } from "@/src/types/venue";
-import { Layer, Rect, Stage } from "react-konva";
+import { Layer, Stage } from "react-konva";
 import { ToolType } from "@/src/types/element";
 import { CanvasControls } from "../CanvasControls/CanvasControls";
 import { useWindowSize } from "@/src/hooks/useWindowSize";

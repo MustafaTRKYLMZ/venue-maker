@@ -180,7 +180,6 @@ export function useGroupElements({
     });
 
     setSelectedElements([newGroup]);
-    console.log("Elements grouped:", newGroup.id);
   }, [selectedElements, setVenue, setSelectedElements]);
 
   return { handleGroupElements };

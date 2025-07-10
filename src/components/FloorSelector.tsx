@@ -7,6 +7,7 @@ import { IconButton } from "./ui/IconButton";
 import { ElementType, ToolType } from "../types/element";
 import { Button } from "@/components/ui/button";
 import { cn } from "../utils/cn";
+import { toast } from "sonner";
 
 interface FloorSelectorProps {
   floors: Floor[];
@@ -40,6 +41,7 @@ export const FloorSelector: React.FC<FloorSelectorProps> = ({
       ) {
         tool = { type };
       } else {
+        toast.error(`Unsupported type: ${type}`);
         console.error(`Unsupported type: ${type}`);
         return;
       }

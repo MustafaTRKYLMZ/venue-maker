@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { elementFormSchema } from "@/src/config/elementFormSchema";
+import { elementFormSchema } from "@/src/config/schemas/elementFormSchema";
 import { useEffect } from "react";
 import {
   AlertDialog,
@@ -28,12 +28,16 @@ import { flattenObject } from "@/src/utils/form/flattenObject";
 import { getCommonFields } from "@/src/utils/form/getCommonFields";
 import { groupFields } from "@/src/utils/form/groupFields";
 import { SelectedElement } from "@/src/types/element";
+import { applySchemaPatch } from "@/src/utils/helpers/applySchemaPatch"; // 🔥 Burada ekledik
+import { commonSectionSchema } from "@/src/config/schemas/commonSectionSchema";
+import { getFieldsForMultiTypes } from "@/src/utils/form/getFieldsForMultiTypes";
 
 type DynamicFormProps = {
   type: string;
   defaultValues: SelectedElement | SelectedElement[];
-  onSubmit: (values: Record<string, SelectedElement>) => void;
+  onSubmit: (values: SelectedElement | SelectedElement[]) => void;
   handleDelete?: (id?: string) => void;
+  elementTypes?: string[];
 };
 
 export const DynamicForm = ({
@@ -41,6 +45,7 @@ export const DynamicForm = ({
   defaultValues,
   onSubmit,
   handleDelete,
+  elementTypes = [],
 }: DynamicFormProps) => {
   const isMulti = type === "multi";
 
@@ -49,20 +54,29 @@ export const DynamicForm = ({
       ? defaultValues
       : [defaultValues]
     : defaultValues;
-  console.log("safeDefaultValues:", safeDefaultValues);
+
+  const multiTypes = isMulti
+    ? elementTypes.length > 0
+      ? elementTypes
+      : Array.from(
+          new Set(
+            (safeDefaultValues as SelectedElement[]).map((el) => el.type),
+          ),
+        )
+    : [];
 
   const fields = isMulti
-    ? getCommonFields(
-        (safeDefaultValues as SelectedElement[]).map(
-          (element) => element as unknown as Record<string, SelectedElement[]>,
-        ),
-      )
+    ? getFieldsForMultiTypes(multiTypes)
     : (elementFormSchema[type] ?? []);
 
-  console.log("fields", fields);
   const groupedFields = groupFields(fields);
 
-  const { control, handleSubmit, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { dirtyFields },
+  } = useForm({
     defaultValues: isMulti
       ? Array.isArray(safeDefaultValues)
         ? (flattenObject(safeDefaultValues[0]) as Record<string, any>) || {}
@@ -85,9 +99,42 @@ export const DynamicForm = ({
     if (typeof value === "number") return "number";
     return "text";
   };
-  console.log("groupedFields", groupedFields);
+
+  const handleSubmitForm = (formValues: Record<string, any>) => {
+    if (isMulti) {
+      const flatDirtyFields = flattenObject(dirtyFields);
+      const changedKeys = Object.keys(flatDirtyFields);
+      const changedValues = changedKeys.reduce(
+        (acc, key) => {
+          acc[key] = formValues[key];
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+
+      const updated = (safeDefaultValues as SelectedElement[]).map((el) => {
+        const schema =
+          elementFormSchema[el.type] ?? commonSectionSchema[el.type] ?? [];
+        return applySchemaPatch(el, changedValues, el.type, {
+          [el.type]: schema,
+        });
+      });
+
+      onSubmit(updated);
+    } else {
+      const el = safeDefaultValues as SelectedElement;
+      const schema =
+        elementFormSchema[el.type] ?? commonSectionSchema[el.type] ?? [];
+      const updated = applySchemaPatch(el, formValues, el.type, {
+        [el.type]: schema,
+      });
+
+      onSubmit(updated);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 z-100">
+    <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-4 z-100">
       <Accordion
         type="multiple"
         defaultValue={["General", "Position", "Style"]}

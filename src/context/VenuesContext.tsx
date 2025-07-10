@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Venue } from "@/src/types/venue";
+import { toast } from "sonner";
 
 type VenuesContextType = {
   venues: Venue[];
@@ -29,6 +30,7 @@ export const VenuesProvider = ({ children }: { children: React.ReactNode }) => {
         const parsed = JSON.parse(stored);
         setVenues(parsed);
       } catch (e) {
+        toast.error("Failed to parse venues from localStorage");
         console.error("Invalid JSON in localStorage:", e);
       }
     }

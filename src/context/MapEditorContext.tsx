@@ -67,6 +67,7 @@ export const MapEditorProvider = ({
           parsedVenue.floors.length > 0 ? parsedVenue.floors[0].id : null,
         );
       } catch (error) {
+        toast.error("Failed to parse venue from localStorage");
         console.error("Failed to parse venue from localStorage", error);
       }
     } else {
